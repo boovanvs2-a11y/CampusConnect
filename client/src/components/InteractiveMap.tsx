@@ -67,29 +67,6 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
     return R * c;
   };
 
-  // Generate ideal campus path with waypoints
-  const generateCampusPath = (start: [number, number], end: [number, number]): [number, number][] => {
-    // Create a path that navigates through campus realistically
-    // Use central campus hub (12.9017, 77.5190) as waypoint
-    const campusHub: [number, number] = [12.9017, 77.5190];
-    
-    // Determine if we should go through hub or direct based on proximity
-    const distDirect = getDistance(start[0], start[1], end[0], end[1]);
-    const distViaHub = getDistance(start[0], start[1], campusHub[0], campusHub[1]) + 
-                      getDistance(campusHub[0], campusHub[1], end[0], end[1]);
-    
-    if (distDirect < 0.15) {
-      // Direct path if very close
-      return [start, end];
-    } else if (distViaHub < distDirect * 1.3) {
-      // Use hub if it's not too much longer
-      return [start, campusHub, end];
-    } else {
-      // Direct path otherwise
-      return [start, end];
-    }
-  };
-
   // Load leaflet and initialize map
   useEffect(() => {
     if (leafletLoadedRef.current || !mapRef.current) return;
@@ -185,10 +162,10 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       routeLayerRef.current = null;
     }
 
-    // Generate ideal path with waypoints
-    const pathPoints = generateCampusPath(userLocation, [location.latitude, location.longitude]);
+    // Draw direct path (ideal for small campus)
+    const routePoints: [number, number][] = [userLocation, [location.latitude, location.longitude]];
     
-    routeLayerRef.current = L.polyline(pathPoints, {
+    routeLayerRef.current = L.polyline(routePoints, {
       color: "hsl(188, 97%, 35%)",
       weight: 4,
       opacity: 0.85,
@@ -196,38 +173,17 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       lineJoin: "round",
     }).addTo(map);
 
-    // Add waypoint markers
-    pathPoints.forEach((point, idx) => {
-      if (idx > 0 && idx < pathPoints.length - 1) {
-        const waypointIcon = L.divIcon({
-          html: '<div class="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-white text-xs font-bold" style="background: hsl(188, 97%, 35%);"></div>',
-          iconSize: [24, 24],
-          className: "",
-        });
-        L.marker(point, { icon: waypointIcon }).addTo(map);
-      }
-    });
-
-    const group = L.featureGroup(pathPoints.map((p: [number, number]) => L.marker(p)));
+    const group = L.featureGroup(routePoints.map((p: [number, number]) => L.marker(p)));
     map.fitBounds(group.getBounds().pad(0.15), { maxZoom: 17 });
 
-    // Calculate total path distance
-    let totalDistance = 0;
-    for (let i = 0; i < pathPoints.length - 1; i++) {
-      totalDistance += getDistance(
-        pathPoints[i][0],
-        pathPoints[i][1],
-        pathPoints[i + 1][0],
-        pathPoints[i + 1][1]
-      );
-    }
-    
-    const meters = Math.round(totalDistance * 1000);
+    // Calculate distance
+    const distance = getDistance(userLocation[0], userLocation[1], location.latitude, location.longitude);
+    const meters = Math.round(distance * 1000);
     const walkingTime = Math.ceil((meters / 1000) / 1.4);
     
     toast({
       title: "Route to " + location.name,
-      description: `${meters}m • ~${walkingTime} min walk • ${pathPoints.length - 1} waypoint${pathPoints.length > 2 ? 's' : ''}`,
+      description: `${meters}m • ~${walkingTime} min walk`,
     });
   };
 
