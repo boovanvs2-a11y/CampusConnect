@@ -10,7 +10,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validated = insertUserSchema.parse(req.body);
       const user = await storage.createUser(validated);
       if (req.session) req.session.userId = user.id;
-      res.status(201).json({ id: user.id, username: user.username });
+      res.status(201).json({ id: user.id, username: user.username, role: user.role });
     } catch (error) {
       res.status(400).json({ error: "Signup failed" });
     }
@@ -29,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (req.session) req.session.userId = user.id;
-      res.json({ id: user.id, username: user.username });
+      res.json({ id: user.id, username: user.username, role: user.role });
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
     }
@@ -44,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(401).json({ error: "User not found" });
       }
-      res.json({ id: user.id, username: user.username });
+      res.json({ id: user.id, username: user.username, role: user.role });
     } catch (error) {
       res.status(500).json({ error: "Failed to get user" });
     }

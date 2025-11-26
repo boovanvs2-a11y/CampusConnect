@@ -138,12 +138,31 @@ export class MemStorage implements IStorage {
   }
 
   private initializeDefaultUsers() {
-    const demoUser: User = {
-      id: "demo-user",
-      username: "student",
-      password: "password",
-    };
-    this.users.set("demo-user", demoUser);
+    // Demo accounts for different roles
+    const demoUsers: User[] = [
+      {
+        id: "student-demo",
+        username: "1RN21CS001",
+        password: "student123",
+        role: "student",
+      },
+      {
+        id: "lecturer-demo",
+        username: "RNSIT0001",
+        password: "lecturer123",
+        role: "lecturer",
+      },
+      {
+        id: "principal-demo",
+        username: "PRINCIPAL001",
+        password: "principal123",
+        role: "principal",
+      },
+    ];
+
+    demoUsers.forEach((user) => {
+      this.users.set(user.id, user);
+    });
   }
 
   async getUser(id: string): Promise<User | undefined> {

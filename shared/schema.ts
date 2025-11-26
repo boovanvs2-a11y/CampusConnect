@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  role: varchar("role").notNull().default("student"), // student, lecturer, principal
 });
 
 export const locations = pgTable("locations", {
@@ -23,6 +24,7 @@ export const locations = pgTable("locations", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  role: true,
 });
 
 export const insertLocationSchema = createInsertSchema(locations).pick({
