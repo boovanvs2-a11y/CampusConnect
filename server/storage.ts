@@ -95,11 +95,12 @@ export class MemStorage implements IStorage {
   }
 
   private initializeDefaultUsers() {
-    this.users.set("demo-user", {
+    const demoUser: User = {
       id: "demo-user",
       username: "student",
       password: "password",
-    });
+    };
+    this.users.set("demo-user", demoUser);
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -122,8 +123,8 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id } as Location;
-    this.users.set(id, user as any);
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
     return user;
   }
 

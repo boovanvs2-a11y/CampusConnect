@@ -1,22 +1,22 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertLocationSchema, insertUserSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
-  app.post("/api/auth/signup", async (req, res) => {
+  app.post("/api/auth/signup", async (req: Request & { session?: any }, res) => {
     try {
       const validated = insertUserSchema.parse(req.body);
       const user = await storage.createUser(validated);
-      req.session!.userId = user.id;
+      if (req.session) req.session.userId = user.id;
       res.status(201).json({ id: user.id, username: user.username });
     } catch (error) {
       res.status(400).json({ error: "Signup failed" });
     }
   });
 
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", async (req: Request & { session?: any }, res) => {
     try {
       const { username, password } = req.body;
       if (!username || !password) {
@@ -28,14 +28,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      req.session!.userId = user.id;
+      if (req.session) req.session.userId = user.id;
       res.json({ id: user.id, username: user.username });
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
     }
   });
 
-  app.get("/api/auth/me", async (req, res) => {
+  app.get("/api/auth/me", async (req: Request & { session?: any }, res) => {
     try {
       if (!req.session?.userId) {
         return res.status(401).json({ error: "Not authenticated" });
@@ -50,8 +50,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/logout", async (req, res) => {
-    req.session!.destroy((err) => {
+  app.post("/api/auth/logout", async (req: Request & { session?: any }, res) => {
+    if (!req.session) {
+      return res.json({ success: true });
+    }
+    req.session.destroy((err: Error | null) => {
       if (err) {
         return res.status(500).json({ error: "Logout failed" });
       }
