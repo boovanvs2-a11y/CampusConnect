@@ -1,6 +1,7 @@
 import { StudyPortal } from "@/components/StudyPortal";
 import { AnnouncementsSection } from "@/components/AnnouncementsSection";
 import { PrintService } from "@/components/PrintService";
+import { PrincipalPanel } from "@/components/PrincipalPanel";
 import { ClubsCarousel } from "@/components/ClubsCarousel";
 import { ConnectSection } from "@/components/ConnectSection";
 import { DiscussSection } from "@/components/DiscussSection";
@@ -133,6 +134,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-3 space-y-4">
+            {user?.role === "principal" && <PrincipalPanel />}
             <AnnouncementsSection announcements={mockAnnouncements} />
             <PrintService />
             <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={mockNextClass} />
