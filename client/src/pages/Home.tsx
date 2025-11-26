@@ -12,6 +12,7 @@ import { CompactEventsList } from "@/components/CompactEventsList";
 import { InteractiveMap } from "@/components/InteractiveMap";
 import { ColorPicker } from "@/components/ColorPicker";
 import { CalendarSidebar } from "@/components/CalendarSidebar";
+import { AISidebar } from "@/components/AISidebar";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -165,10 +166,15 @@ export default function Home() {
             <DiscussSection discussions={mockDiscussions} />
           </div>
 
-          <div className="lg:col-span-4 space-y-4">
-            <SocializeSection posts={mockPosts} />
-            <CompactEventsList events={mockEvents} />
-            <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
+          <div className="lg:col-span-4 relative">
+            <div className="space-y-4 pr-14">
+              <SocializeSection posts={mockPosts} />
+              <CompactEventsList events={mockEvents} />
+              <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
+            </div>
+            <div className="absolute -right-3 top-0">
+              <AISidebar />
+            </div>
           </div>
         </div>
       </main>
