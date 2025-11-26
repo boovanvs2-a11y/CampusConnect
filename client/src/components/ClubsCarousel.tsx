@@ -13,9 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Loader } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 type Club = {
   id: string;
@@ -31,7 +32,7 @@ type ClubsCarouselProps = {
   userRole?: string;
 };
 
-export function ClubsCarousel({ clubs, userRole = "student" }: ClubsCarouselProps) {
+export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsCarouselProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,6 +43,14 @@ export function ClubsCarousel({ clubs, userRole = "student" }: ClubsCarouselProp
   const [joinConfirmOpen, setJoinConfirmOpen] = useState(false);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [joinedClubs, setJoinedClubs] = useState<Set<string>>(new Set());
+
+  // Fetch approved clubs from backend
+  const { data: approvedClubs = [], isLoading } = useQuery({
+    queryKey: ["/api/clubs"],
+  });
+
+  // Combine real approved clubs with mock clubs for display
+  const displayClubs = approvedClubs.length > 0 ? approvedClubs : mockClubs;
 
   const handleCreateClub = async () => {
     if (!clubName.trim() || !clubCategory.trim() || !clubDesc.trim()) {
