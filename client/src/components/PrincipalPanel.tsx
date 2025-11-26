@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { PostAnnouncementForm } from "./PostAnnouncementForm";
 
 type PendingClub = {
   id: string;
@@ -24,6 +25,10 @@ export function PrincipalPanel() {
   useEffect(() => {
     fetchPendingClubs();
   }, []);
+
+  const handleAnnouncementPosted = () => {
+    // Refresh or just show success - announcements are displayed elsewhere
+  };
 
   const fetchPendingClubs = async () => {
     setIsLoading(true);
