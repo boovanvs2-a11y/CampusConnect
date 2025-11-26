@@ -48,12 +48,12 @@ export function CalendarSidebar() {
   const getEventType = (day: number) => CALENDAR_EVENTS[day];
 
   return (
-    <div className="flex gap-2 w-full">
+    <div className="relative">
       {/* Expand/Collapse Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         data-testid="button-calendar-toggle"
-        className="flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-accent transition-colors flex-shrink-0 mt-4"
+        className="flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-accent transition-colors flex-shrink-0"
         title="Toggle calendar"
       >
         {isExpanded ? (
@@ -63,10 +63,10 @@ export function CalendarSidebar() {
         )}
       </button>
 
-      {/* Calendar Panel */}
+      {/* Calendar Panel - Overlays on top */}
       {isExpanded && (
-        <div className="animate-in slide-in-from-left transition-all duration-300 flex-1 max-w-sm">
-          <Card className="backdrop-blur-sm bg-card/90">
+        <div className="absolute left-12 top-0 animate-in slide-in-from-left transition-all duration-300 w-80 z-50">
+          <Card className="backdrop-blur-sm bg-card/95 shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2">
