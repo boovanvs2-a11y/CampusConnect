@@ -43,6 +43,7 @@ export class MemStorage implements IStorage {
     this.studentProfiles = new Map();
     this.initializeDefaultLocations();
     this.initializeDefaultUsers();
+    this.initializeDefaultAnnouncements();
   }
 
   private initializeDefaultLocations() {
@@ -179,6 +180,51 @@ export class MemStorage implements IStorage {
 
     demoUsers.forEach((user) => {
       this.users.set(user.id, user);
+    });
+  }
+
+  private initializeDefaultAnnouncements() {
+    const defaultAnnouncements: Announcement[] = [
+      {
+        id: randomUUID(),
+        title: "Winter Break",
+        content: "Campus will be closed from Dec 20 - Jan 5",
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        category: "holiday",
+        authorId: "principal-demo",
+        authorRole: "principal",
+      },
+      {
+        id: randomUUID(),
+        title: "Maintenance Work",
+        content: "WiFi will be down on Dec 18, 9 PM - 12 AM",
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        category: "maintenance",
+        authorId: "principal-demo",
+        authorRole: "principal",
+      },
+      {
+        id: randomUUID(),
+        title: "Sports Day",
+        content: "Inter-class sports competition on Dec 22",
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        category: "event",
+        authorId: "principal-demo",
+        authorRole: "principal",
+      },
+      {
+        id: randomUUID(),
+        title: "Library Notice",
+        content: "New study materials added to central library",
+        createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        category: "notice",
+        authorId: "principal-demo",
+        authorRole: "principal",
+      },
+    ];
+
+    defaultAnnouncements.forEach((announcement) => {
+      this.announcements.set(announcement.id, announcement);
     });
   }
 
