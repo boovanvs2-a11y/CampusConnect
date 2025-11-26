@@ -1,12 +1,10 @@
 import { type User, type InsertUser, type Location, type InsertLocation } from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  verifyPassword(username: string, password: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getLocations(): Promise<Location[]>;
   getLocationById(id: string): Promise<Location | undefined>;
@@ -24,6 +22,7 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.locations = new Map();
     this.initializeDefaultLocations();
+    this.initializeDefaultUsers();
   }
 
   private initializeDefaultLocations() {
@@ -95,6 +94,14 @@ export class MemStorage implements IStorage {
     });
   }
 
+  private initializeDefaultUsers() {
+    this.users.set("demo-user", {
+      id: "demo-user",
+      username: "student",
+      password: "password",
+    });
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -105,10 +112,18 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async verifyPassword(username: string, password: string): Promise<User | undefined> {
+    const user = await this.getUserByUsername(username);
+    if (user && user.password === password) {
+      return user;
+    }
+    return undefined;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const user: User = { ...insertUser, id } as Location;
+    this.users.set(id, user as any);
     return user;
   }
 
