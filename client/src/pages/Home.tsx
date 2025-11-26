@@ -166,15 +166,15 @@ export default function Home() {
             <DiscussSection discussions={mockDiscussions} />
           </div>
 
-          <div className="lg:col-span-4 relative">
-            <div className="space-y-4 pr-14">
+          <div className="lg:col-span-4 space-y-4">
+            <div className="relative">
               <SocializeSection posts={mockPosts} />
-              <CompactEventsList events={mockEvents} />
-              <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
+              <div className="absolute -right-3 top-0">
+                <AISidebar />
+              </div>
             </div>
-            <div className="absolute -right-3 top-0">
-              <AISidebar />
-            </div>
+            <CompactEventsList events={mockEvents} />
+            <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
           </div>
         </div>
       </main>
