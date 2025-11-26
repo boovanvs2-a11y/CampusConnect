@@ -33,7 +33,8 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [userLocation] = useState<[number, number]>([12.9716, 77.5946]);
+  // RNSIT Main Gate location as user's starting point
+  const [userLocation] = useState<[number, number]>([12.9725, 77.5942]);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
@@ -51,7 +52,22 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
 
   const displayedLocations = searchQuery.length > 0 ? searchResults : allLocations;
 
-  // Load leaflet from CDN and initialize map
+  // Haversine formula for accurate distance calculation
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Load leaflet and initialize map
   useEffect(() => {
     if (leafletLoadedRef.current || !mapRef.current) return;
 
@@ -78,7 +94,7 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       const L = window.L;
       if (!L || mapInstanceRef.current) return;
 
-      const map = L.map(mapRef.current).setView(userLocation, 16);
+      const map = L.map(mapRef.current).setView(userLocation, 17);
       mapInstanceRef.current = map;
       leafletLoadedRef.current = true;
 
@@ -87,19 +103,19 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
         maxZoom: 19,
       }).addTo(map);
 
-      // Add user marker
+      // Add user marker with pulse animation
       const userIcon = L.divIcon({
-        html: '<div class="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 text-white border-2 border-white shadow-lg" style="background: hsl(188, 97%, 35%); box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd" /></svg></div>',
+        html: '<div class="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 text-white border-2 border-white shadow-lg animate-pulse" style="background: hsl(188, 97%, 35%); box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd" /></svg></div>',
         iconSize: [32, 32],
         className: "",
       });
-      L.marker(userLocation, { icon: userIcon }).addTo(map);
+      L.marker(userLocation, { icon: userIcon, title: "Your Location" }).addTo(map);
     };
 
     loadLeaflet();
-  }, []);
+  }, [userLocation]);
 
-  // Add markers for locations
+  // Add location markers
   useEffect(() => {
     if (!mapInstanceRef.current || !window.L || displayedLocations.length === 0) return;
 
@@ -130,6 +146,7 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
 
       const marker = L.marker([location.latitude, location.longitude], {
         icon: customIcon,
+        title: location.name,
       })
         .addTo(map)
         .on("click", () => navigateToLocation(location));
@@ -151,39 +168,29 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       routeLayerRef.current = null;
     }
 
-    // Draw route line
+    // Draw accurate route line with dashed pattern
     const routePoints: [number, number][] = [userLocation, [location.latitude, location.longitude]];
     routeLayerRef.current = L.polyline(routePoints, {
       color: "hsl(188, 97%, 35%)",
       weight: 3,
-      opacity: 0.7,
+      opacity: 0.8,
       dashArray: "5, 5",
+      lineCap: "round",
+      lineJoin: "round",
     }).addTo(map);
 
-    // Fit bounds
+    // Fit bounds to show both points with padding
     const group = L.featureGroup(routePoints.map((p: [number, number]) => L.marker(p)));
-    map.fitBounds(group.getBounds().pad(0.1));
+    map.fitBounds(group.getBounds().pad(0.15), { maxZoom: 17 });
 
-    // Calculate distance
+    // Calculate accurate distance and show
     const distance = getDistance(userLocation[0], userLocation[1], location.latitude, location.longitude);
+    const minutes = Math.ceil(distance / 0.005); // Rough estimate: ~18 km/h walking = 5 m/sec
+    
     toast({
       title: "Route to " + location.name,
-      description: `Distance: ${distance.toFixed(1)} km`,
+      description: `${distance.toFixed(2)} km • ~${minutes} min walk`,
     });
-  };
-
-  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
   };
 
   const clearRoute = () => {
@@ -193,7 +200,7 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       routeLayerRef.current = null;
     }
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView(userLocation, 16);
+      mapInstanceRef.current.setView(userLocation, 17);
     }
   };
 
@@ -249,7 +256,7 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
                       </p>
                     )}
                     <p className="text-xs text-primary font-medium mt-1.5">
-                      {getDistance(userLocation[0], userLocation[1], selectedLocation.latitude, selectedLocation.longitude).toFixed(1)} km away
+                      {getDistance(userLocation[0], userLocation[1], selectedLocation.latitude, selectedLocation.longitude).toFixed(2)} km away
                     </p>
                   </div>
                   <Button
@@ -269,33 +276,46 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
               {displayedLocations.length > 0 ? (
                 <>
                   <p className="text-xs font-medium text-muted-foreground px-2">
-                    {searchQuery.length > 0 ? `${displayedLocations.length} Results` : "Nearby Locations"}
+                    {searchQuery.length > 0 ? `${displayedLocations.length} Results` : "Campus Locations"}
                   </p>
-                  {displayedLocations.map((location: Location) => (
-                    <button
-                      key={location.id}
-                      onClick={() => navigateToLocation(location)}
-                      className={`w-full text-left p-2 rounded-lg hover-elevate active-elevate-2 transition-all ${
-                        selectedLocation?.id === location.id
-                          ? "bg-primary/10 border border-primary/30"
-                          : "border border-border"
-                      }`}
-                      data-testid={`button-location-${location.id}`}
-                    >
-                      <p className="text-sm font-medium truncate">{location.name}</p>
-                      {location.address && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {location.address}
-                        </p>
-                      )}
-                    </button>
-                  ))}
+                  {displayedLocations.map((location: Location) => {
+                    const distance = getDistance(
+                      userLocation[0],
+                      userLocation[1],
+                      location.latitude,
+                      location.longitude
+                    );
+                    return (
+                      <button
+                        key={location.id}
+                        onClick={() => navigateToLocation(location)}
+                        className={`w-full text-left p-2 rounded-lg hover-elevate active-elevate-2 transition-all ${
+                          selectedLocation?.id === location.id
+                            ? "bg-primary/10 border border-primary/30"
+                            : "border border-border"
+                        }`}
+                        data-testid={`button-location-${location.id}`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{location.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {location.address || "No address"}
+                            </p>
+                          </div>
+                          <span className="text-xs text-primary font-semibold flex-shrink-0">
+                            {distance.toFixed(2)} km
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-4 text-center">
                   <MapPin className="h-6 w-6 text-muted-foreground/50 mb-1" />
                   <p className="text-xs text-muted-foreground">
-                    {searchQuery.length > 0 ? "No locations found" : "Loading locations..."}
+                    {searchQuery.length > 0 ? "No locations found" : "Loading campus locations..."}
                   </p>
                 </div>
               )}
