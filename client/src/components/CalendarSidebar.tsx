@@ -27,12 +27,12 @@ export function CalendarSidebar() {
   const exams = CALENDAR_EVENTS.filter((e) => e.type === "exam");
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 w-full">
       {/* Expand/Collapse Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         data-testid="button-calendar-toggle"
-        className="flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-accent transition-colors flex-shrink-0"
+        className="flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-accent transition-colors flex-shrink-0 mt-4"
         title="Toggle calendar"
       >
         {isExpanded ? (
@@ -44,15 +44,15 @@ export function CalendarSidebar() {
 
       {/* Calendar Panel */}
       {isExpanded && (
-        <div className="animate-in slide-in-from-left transition-all duration-300 flex-1 max-w-md">
-          <Card className="backdrop-blur-sm bg-card/90">
+        <div className="animate-in slide-in-from-left transition-all duration-300 flex-1 max-w-sm">
+          <Card className="backdrop-blur-sm bg-card/90 h-full">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary" />
                 Academic Calendar
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 overflow-y-auto max-h-[500px]">
               {/* Holidays Section */}
               <div>
                 <h3 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
@@ -63,6 +63,7 @@ export function CalendarSidebar() {
                     <div
                       key={event.id}
                       className="flex items-start gap-2 p-2 rounded-md bg-green-500/10 border border-green-500/20"
+                      data-testid={`calendar-holiday-${event.id}`}
                     >
                       <div className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
                       <div className="flex-1 min-w-0">
@@ -84,6 +85,7 @@ export function CalendarSidebar() {
                     <div
                       key={event.id}
                       className="flex items-start gap-2 p-2 rounded-md bg-red-500/10 border border-red-500/20"
+                      data-testid={`calendar-exam-${event.id}`}
                     >
                       <div className="h-2 w-2 rounded-full bg-red-500 flex-shrink-0 mt-1.5" />
                       <div className="flex-1 min-w-0">
