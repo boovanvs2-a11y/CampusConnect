@@ -27,7 +27,7 @@ export class MemStorage implements IStorage {
   }
 
   private initializeDefaultLocations() {
-    const defaultLocations: Location[] = [
+    const defaultLocations: Array<Location & {}> = [
       {
         id: "1",
         name: "Central Library",
@@ -91,7 +91,7 @@ export class MemStorage implements IStorage {
     ];
 
     defaultLocations.forEach((loc) => {
-      this.locations.set(loc.id, loc);
+      this.locations.set(loc.id, loc as Location);
     });
   }
 
@@ -122,7 +122,7 @@ export class MemStorage implements IStorage {
 
   async createLocation(insertLocation: InsertLocation): Promise<Location> {
     const id = randomUUID();
-    const location: Location = { ...insertLocation, id };
+    const location: Location = { ...insertLocation, id } as Location;
     this.locations.set(id, location);
     return location;
   }

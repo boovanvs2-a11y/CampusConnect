@@ -10,11 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Search,
   Navigation,
-  Locate,
   ChevronDown,
-  Loader,
+  MapPin,
+  ExternalLink,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Location } from "@shared/schema";
 
@@ -22,108 +22,41 @@ type InteractiveMapProps = {
   currentLocation: string;
 };
 
-declare global {
-  interface Window {
-    google: any;
-  }
-}
-
 export function InteractiveMap({
   currentLocation,
 }: InteractiveMapProps) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(true);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
 
-  const { data: locations = [], isLoading } = useQuery({
+  const { data: allLocations = [] } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
   });
 
-  const { data: searchResults = [] } = useQuery({
+  const { data: searchResults = [] } = useQuery<Location[]>({
     queryKey: ["/api/locations/search", searchQuery],
     enabled: searchQuery.length > 0,
   });
 
-  const displayedLocations = searchQuery.length > 0 ? searchResults : locations;
+  const displayedLocations = searchQuery.length > 0 ? searchResults : allLocations;
 
-  useEffect(() => {
-    if (!mapRef.current || !window.google) return;
-
-    const map = new window.google.maps.Map(mapRef.current, {
-      zoom: 16,
-      center: { lat: 12.9716, lng: 77.5946 },
-      styles: [
-        {
-          featureType: "all",
-          elementType: "labels.text.fill",
-          stylers: [{ color: "#666666" }],
-        },
-      ],
-    });
-
-    mapInstanceRef.current = map;
-
-    locations.forEach((location: Location) => {
-      const marker = new window.google.maps.Marker({
-        position: { lat: location.latitude, lng: location.longitude },
-        map,
-        title: location.name,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: getMarkerColor(location.type),
-          fillOpacity: 0.8,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
-        },
-      });
-
-      marker.addListener("click", () => {
-        setSelectedLocation(location);
-        map.setCenter({
-          lat: location.latitude,
-          lng: location.longitude,
-        });
-      });
-    });
-  }, [locations]);
-
-  const getMarkerColor = (type: string) => {
-    const colors: Record<string, string> = {
-      building: "#3b82f6",
-      food: "#f97316",
-      library: "#22c55e",
-      sports: "#a855f7",
-    };
-    return colors[type] || "#06b6d4";
-  };
-
-  const handleNavigate = (location: Location) => {
-    setSelectedLocation(location);
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setCenter({
-        lat: location.latitude,
-        lng: location.longitude,
-      });
-    }
+  const openGoogleMaps = (location: Location) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}&destination_place_id=${location.name}`;
+    window.open(url, "_blank");
     toast({
-      title: "Location Selected",
+      title: "Opening Google Maps",
       description: `Navigate to ${location.name}`,
     });
   };
 
-  const handleCenterLocation = () => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setCenter({ lat: 12.9716, lng: 77.5946 });
-      mapInstanceRef.current.setZoom(16);
-    }
-    toast({
-      title: "Centered",
-      description: "Map centered on campus",
-    });
+  const getLocationIcon = (type: string) => {
+    const icons: Record<string, string> = {
+      building: "🏢",
+      food: "🍽️",
+      library: "📚",
+      sports: "⚽",
+    };
+    return icons[type] || "📍";
   };
 
   return (
@@ -153,68 +86,64 @@ export function InteractiveMap({
               />
             </div>
 
-            <div className="relative h-64 rounded-md overflow-hidden border-2 border-primary/20 bg-background">
-              <div
-                ref={mapRef}
-                className="w-full h-full"
-                data-testid="map-container"
-              />
-
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-                  <Loader className="h-6 w-6 text-primary animate-spin" />
-                </div>
-              )}
-
-              <Button
-                size="icon"
-                variant="secondary"
-                className="absolute bottom-2 right-2 h-8 w-8 rounded-full shadow-lg"
-                onClick={handleCenterLocation}
-                data-testid="button-center-location"
-              >
-                <Locate className="h-4 w-4" />
-              </Button>
-
-              {selectedLocation && (
-                <div className="absolute top-2 left-2 bg-background/95 backdrop-blur rounded-lg px-3 py-2 border border-primary/20 max-w-xs">
-                  <p className="text-sm font-semibold text-foreground" data-testid="text-map-current-location">
-                    {selectedLocation.name}
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {displayedLocations.length > 0 ? (
+                <>
+                  <p className="text-xs font-medium text-muted-foreground px-2">
+                    {searchQuery.length > 0 ? `${displayedLocations.length} Results` : "Nearby Locations"}
                   </p>
-                  {selectedLocation.address && (
-                    <p className="text-xs text-muted-foreground">
-                      {selectedLocation.address}
-                    </p>
-                  )}
-                  {selectedLocation.phone && (
-                    <p className="text-xs text-muted-foreground">
-                      {selectedLocation.phone}
-                    </p>
-                  )}
+                  {displayedLocations.map((location: Location) => (
+                    <button
+                      key={location.id}
+                      onClick={() => openGoogleMaps(location)}
+                      className="w-full text-left p-3 rounded-lg border border-primary/20 hover-elevate active-elevate-2 transition-all"
+                      data-testid={`button-location-${location.id}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="text-lg flex-shrink-0">
+                          {getLocationIcon(location.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{location.name}</p>
+                          {location.address && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {location.address}
+                            </p>
+                          )}
+                          {location.phone && (
+                            <p className="text-xs text-muted-foreground">{location.phone}</p>
+                          )}
+                          <div className="flex items-center gap-1 mt-1.5">
+                            <MapPin className="h-3 w-3 text-primary" />
+                            <span className="text-xs text-primary font-medium">
+                              Open in Google Maps
+                            </span>
+                            <ExternalLink className="h-3 w-3 text-primary ml-auto" />
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <MapPin className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    {searchQuery.length > 0 ? "No locations found" : "Loading locations..."}
+                  </p>
                 </div>
               )}
             </div>
 
-            {displayedLocations.length > 0 && (
-              <div className="space-y-1 max-h-40 overflow-y-auto">
-                <p className="text-xs font-medium text-muted-foreground px-2">
-                  {searchQuery.length > 0 ? "Search Results" : "Nearby Locations"}
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20">
+              <Navigation className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate" data-testid="text-map-current-location">
+                  {currentLocation}
                 </p>
-                {displayedLocations.map((location: Location) => (
-                  <button
-                    key={location.id}
-                    onClick={() => handleNavigate(location)}
-                    className="w-full text-left px-2 py-1.5 rounded-md hover-elevate active-elevate-2"
-                    data-testid={`button-location-${location.id}`}
-                  >
-                    <p className="text-sm font-medium">{location.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {location.type} • {location.address || "No address"}
-                    </p>
-                  </button>
-                ))}
+                <p className="text-xs text-muted-foreground">Your current location</p>
               </div>
-            )}
+            </div>
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
