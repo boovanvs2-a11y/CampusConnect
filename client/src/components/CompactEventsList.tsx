@@ -5,13 +5,15 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/collapsible";
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, ChevronDown, Ticket, CheckCircle } from "lucide-react";
 import { useState } from "react";
@@ -120,76 +122,80 @@ export function CompactEventsList({ events }: CompactEventsListProps) {
           <CollapsibleContent>
             <CardContent className="pt-0">
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
-              {events.map((event) => {
-                const isRegistered = registeredEvents.has(event.id);
-                const isLoading = loadingEvent === event.id;
+                {events.map((event) => {
+                  const isRegistered = registeredEvents.has(event.id);
+                  const isLoading = loadingEvent === event.id;
 
-                return (
-                  <div
-                    key={event.id}
-                    className="flex items-center gap-3 p-2 rounded-md border hover-elevate cursor-pointer"
-                    onClick={() => handleEventClick(event.id)}
-                    data-testid={`card-event-${event.id}`}
-                  >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-md bg-event-accent flex flex-col items-center justify-center text-event-accent-foreground">
-                      <p className="text-sm font-bold leading-none">
-                        {new Date(event.date).getDate()}
-                      </p>
-                      <p className="text-[9px] uppercase">
-                        {new Date(event.date).toLocaleDateString("en-US", {
-                          month: "short",
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-sm font-medium truncate"
-                        data-testid={`text-compact-event-title-${event.id}`}
+                  return (
+                    <div
+                      key={event.id}
+                      className="flex items-center gap-3 p-2 rounded-md border hover-elevate cursor-pointer"
+                      onClick={() => handleEventClick(event.id)}
+                      data-testid={`card-event-${event.id}`}
+                    >
+                      <div className="flex-shrink-0 w-10 h-10 rounded-md bg-event-accent flex flex-col items-center justify-center text-event-accent-foreground">
+                        <p className="text-sm font-bold leading-none">
+                          {new Date(event.date).getDate()}
+                        </p>
+                        <p className="text-[9px] uppercase">
+                          {new Date(event.date).toLocaleDateString("en-US", {
+                            month: "short",
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="text-sm font-medium truncate"
+                          data-testid={`text-compact-event-title-${event.id}`}
+                        >
+                          {event.title}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          <span className="truncate">{event.time}</span>
+                          {event.spotsLeft !== undefined && (
+                            <>
+                              <span>•</span>
+                              <span className={event.spotsLeft < 20 ? "text-event-accent" : ""}>
+                                {event.spotsLeft} spots
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={isRegistered ? "secondary" : "default"}
+                        disabled={isLoading}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRegisterClick(event);
+                        }}
+                        data-testid={`button-register-event-${event.id}`}
+                        className="flex-shrink-0"
                       >
-                        {event.title}
-                      </p>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span className="truncate">{event.time}</span>
-                        {event.spotsLeft !== undefined && (
+                        {isLoading ? (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ) : isRegistered ? (
                           <>
-                            <span>•</span>
-                            <span className={event.spotsLeft < 20 ? "text-event-accent" : ""}>
-                              {event.spotsLeft} spots
-                            </span>
+                            <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                            Going
+                          </>
+                        ) : (
+                          <>
+                            <Ticket className="h-3.5 w-3.5 mr-1" />
+                            Register
                           </>
                         )}
-                      </div>
+                      </Button>
                     </div>
-                    <Button
-                      size="sm"
-                      variant={isRegistered ? "secondary" : "default"}
-                      disabled={isLoading}
-                      onClick={() => handleRegister(event)}
-                      data-testid={`button-register-event-${event.id}`}
-                      className="flex-shrink-0"
-                    >
-                      {isLoading ? (
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      ) : isRegistered ? (
-                        <>
-                          <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                          Going
-                        </>
-                      ) : (
-                        <>
-                          <Ticket className="h-3.5 w-3.5 mr-1" />
-                          Register
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+    </>
   );
 }
