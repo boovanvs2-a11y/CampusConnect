@@ -17,6 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Users, Clock, FileText, ExternalLink, GraduationCap, Mail, Phone } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 type Note = {
   id: string;
@@ -54,6 +55,7 @@ const statusConfig = {
 
 export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [selectedFaculty, setSelectedFaculty] = useState<Faculty | null>(null);
   
   const notesBySubject = notes.reduce((acc, note) => {
@@ -70,19 +72,7 @@ export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
   };
 
   const handleContactFaculty = (member: Faculty) => {
-    if (member.status === "offline") {
-      toast({
-        title: "Faculty Offline",
-        description: `${member.name} is currently offline. Try emailing or calling.`,
-        variant: "destructive",
-      });
-    } else {
-      setSelectedFaculty(member);
-      toast({
-        title: "Faculty Details",
-        description: `Viewing ${member.name}'s contact information`,
-      });
-    }
+    setLocation(`/faculty?id=${member.id}`);
   };
 
   const handleOpenERP = () => {
