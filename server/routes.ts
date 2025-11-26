@@ -265,13 +265,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get user info and email from request
       const user = req.session?.userId ? await storage.getUser(req.session.userId) : null;
-      const userEmail = req.body.email || "unknown@example.com";
-      const filename = req.body.filename || "print-request.jpg";
+      const userEmail = req.body.email?.trim();
+      const filename = req.body.filename?.trim() || "print-request.jpg";
+      
+      if (!userEmail) {
+        return res.status(400).json({ error: "Email is required" });
+      }
       
       // Log the print request with user email
-      console.log(`Print request from: ${userEmail}`);
-      console.log(`File: ${filename}`);
-      console.log(`User: ${user?.username || "anonymous"}`);
+      console.log(`✉️  Print request from: ${userEmail}`);
+      console.log(`📄 File: ${filename}`);
+      console.log(`👤 User: ${user?.username || "anonymous"}`);
+      console.log(`📧 Forwarding to ankushrampa@gmail.com...`);
       
       // Send email to print service
       const emailSent = await sendPrintEmail(filename, userEmail);
@@ -282,11 +287,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json({ 
         success: true, 
-        message: "Print request sent successfully",
+        message: "Print request sent successfully to ankushrampa@gmail.com",
         sentTo: "ankushrampa@gmail.com",
-        userEmail: userEmail
+        userEmail: userEmail,
+        filename: filename
       });
     } catch (error) {
+      console.error("Print request error:", error);
       res.status(500).json({ error: "Failed to process print request" });
     }
   });

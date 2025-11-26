@@ -136,8 +136,8 @@ export default function Home() {
           <div className="lg:col-span-3 space-y-4">
             {user?.role === "principal" && <PrincipalPanel />}
             <AnnouncementsSection announcements={mockAnnouncements} />
-            <PrintService />
             <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={mockNextClass} />
+            <PrintService />
           </div>
 
           <div className="lg:col-span-5 space-y-4">
