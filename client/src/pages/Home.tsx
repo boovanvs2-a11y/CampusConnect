@@ -2,6 +2,7 @@ import { StudyPortal } from "@/components/StudyPortal";
 import { AnnouncementsSection } from "@/components/AnnouncementsSection";
 import { PrintService } from "@/components/PrintService";
 import { PrincipalPanel } from "@/components/PrincipalPanel";
+import { ApprovedClubsNotification } from "@/components/ApprovedClubsNotification";
 import { ClubsCarousel } from "@/components/ClubsCarousel";
 import { ConnectSection } from "@/components/ConnectSection";
 import { DiscussSection } from "@/components/DiscussSection";
