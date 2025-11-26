@@ -3,28 +3,49 @@ import { ChevronRight, ChevronLeft, Calendar } from "lucide-react";
 import { useState } from "react";
 
 type CalendarEvent = {
-  id: string;
-  date: string;
-  title: string;
+  date: number;
   type: "holiday" | "exam";
 };
 
-const CALENDAR_EVENTS: CalendarEvent[] = [
-  { id: "1", date: "Dec 25", title: "Christmas Holiday", type: "holiday" },
-  { id: "2", date: "Dec 26", title: "Boxing Day", type: "holiday" },
-  { id: "3", date: "Jan 26", title: "Republic Day", type: "holiday" },
-  { id: "4", date: "Dec 10", title: "Unit Test 1 - Mathematics", type: "exam" },
-  { id: "5", date: "Dec 12", title: "Unit Test 1 - CS", type: "exam" },
-  { id: "6", date: "Dec 15", title: "Midterm Exams Start", type: "exam" },
-  { id: "7", date: "Jan 15", title: "Final Exams Start", type: "exam" },
-  { id: "8", date: "Jan 10", title: "New Year Special", type: "holiday" },
-];
+const CALENDAR_EVENTS: Record<number, CalendarEvent> = {
+  10: { date: 10, type: "exam" },
+  12: { date: 12, type: "exam" },
+  15: { date: 15, type: "exam" },
+  18: { date: 18, type: "exam" },
+  20: { date: 20, type: "holiday" },
+  21: { date: 21, type: "holiday" },
+  25: { date: 25, type: "holiday" },
+  26: { date: 26, type: "holiday" },
+};
 
 export function CalendarSidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 11)); // December 2025
 
-  const holidays = CALENDAR_EVENTS.filter((e) => e.type === "holiday");
-  const exams = CALENDAR_EVENTS.filter((e) => e.type === "exam");
+  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+
+  const daysInMonth = getDaysInMonth(currentMonth);
+  const firstDay = getFirstDayOfMonth(currentMonth);
+  const monthName = currentMonth.toLocaleString("default", { month: "long", year: "numeric" });
+
+  const days = [];
+  for (let i = 0; i < firstDay; i++) {
+    days.push(null);
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(i);
+  }
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+  };
+
+  const getEventType = (day: number) => CALENDAR_EVENTS[day];
 
   return (
     <div className="flex gap-2 w-full">
@@ -45,55 +66,77 @@ export function CalendarSidebar() {
       {/* Calendar Panel */}
       {isExpanded && (
         <div className="animate-in slide-in-from-left transition-all duration-300 flex-1 max-w-sm">
-          <Card className="backdrop-blur-sm bg-card/90 h-full">
+          <Card className="backdrop-blur-sm bg-card/90">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-primary" />
-                Academic Calendar
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 overflow-y-auto max-h-[500px]">
-              {/* Holidays Section */}
-              <div>
-                <h3 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                  Holidays
-                </h3>
-                <div className="space-y-1.5">
-                  {holidays.map((event) => (
-                    <div
-                      key={event.id}
-                      className="flex items-start gap-2 p-2 rounded-md bg-green-500/10 border border-green-500/20"
-                      data-testid={`calendar-holiday-${event.id}`}
-                    >
-                      <div className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">{event.date}</p>
-                      </div>
-                    </div>
-                  ))}
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  {monthName}
+                </CardTitle>
+                <div className="flex gap-1">
+                  <button
+                    onClick={handlePrevMonth}
+                    className="p-1 hover:bg-accent rounded"
+                    data-testid="button-prev-month"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={handleNextMonth}
+                    className="p-1 hover:bg-accent rounded"
+                    data-testid="button-next-month"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
+            </CardHeader>
+            <CardContent>
+              {/* Days of week header */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                  <div key={day} className="text-center text-xs font-semibold text-muted-foreground p-1">
+                    {day}
+                  </div>
+                ))}
+              </div>
 
-              {/* Exams Section */}
-              <div>
-                <h3 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                  Exams
-                </h3>
-                <div className="space-y-1.5">
-                  {exams.map((event) => (
+              {/* Calendar grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {days.map((day, index) => {
+                  const event = day ? getEventType(day) : null;
+                  const isHoliday = event?.type === "holiday";
+                  const isExam = event?.type === "exam";
+
+                  return (
                     <div
-                      key={event.id}
-                      className="flex items-start gap-2 p-2 rounded-md bg-red-500/10 border border-red-500/20"
-                      data-testid={`calendar-exam-${event.id}`}
+                      key={index}
+                      className={`aspect-square flex items-center justify-center text-xs rounded-md font-medium ${
+                        !day
+                          ? "bg-transparent"
+                          : isHoliday
+                            ? "bg-green-500/20 border border-green-500/30 text-green-700 dark:text-green-400"
+                            : isExam
+                              ? "bg-red-500/20 border border-red-500/30 text-red-700 dark:text-red-400"
+                              : "bg-muted text-foreground hover:bg-accent"
+                      }`}
+                      data-testid={day ? `calendar-day-${day}` : undefined}
                     >
-                      <div className="h-2 w-2 rounded-full bg-red-500 flex-shrink-0 mt-1.5" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">{event.date}</p>
-                      </div>
+                      {day}
                     </div>
-                  ))}
+                  );
+                })}
+              </div>
+
+              {/* Legend */}
+              <div className="mt-3 pt-3 border-t border-border space-y-1">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="h-2 w-2 rounded bg-green-500" />
+                  <span className="text-muted-foreground">Holiday</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="h-2 w-2 rounded bg-red-500" />
+                  <span className="text-muted-foreground">Exam</span>
                 </div>
               </div>
             </CardContent>
