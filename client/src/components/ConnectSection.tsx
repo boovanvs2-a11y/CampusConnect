@@ -1,119 +1,141 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarCheck, Users, Clock, Ticket } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
+import { Users, ChevronDown, Shield, CheckCircle } from "lucide-react";
 import { useState } from "react";
 
-type Fest = {
+type Club = {
   id: string;
   name: string;
-  date: string;
-  time: string;
-  spotsLeft: number;
-  totalSpots: number;
+  description: string;
+  members: number;
   category: string;
-  registered: boolean;
+  admin: string;
+  adminInitials: string;
+  isOfficial: boolean;
+  joined: boolean;
 };
 
 type ConnectSectionProps = {
-  fests: Fest[];
+  clubs: Club[];
 };
 
-export function ConnectSection({ fests }: ConnectSectionProps) {
-  const [registeredFests, setRegisteredFests] = useState<Set<string>>(
-    new Set(fests.filter((f) => f.registered).map((f) => f.id))
+export function ConnectSection({ clubs }: ConnectSectionProps) {
+  const { toast } = useToast();
+  const [joinedClubs, setJoinedClubs] = useState<Set<string>>(
+    new Set(clubs.filter((c) => c.joined).map((c) => c.id))
   );
+  const [loadingClub, setLoadingClub] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(true);
 
-  const handleRegister = (festId: string) => {
-    setRegisteredFests((prev) => {
+  const handleJoin = async (club: Club) => {
+    setLoadingClub(club.id);
+    
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    
+    setJoinedClubs((prev) => {
       const next = new Set(prev);
-      if (next.has(festId)) {
-        next.delete(festId);
+      if (next.has(club.id)) {
+        next.delete(club.id);
+        toast({
+          title: "Left Club",
+          description: `You have left ${club.name}`,
+        });
       } else {
-        next.add(festId);
+        next.add(club.id);
+        toast({
+          title: "Joined Club",
+          description: `Welcome to ${club.name}!`,
+        });
       }
       return next;
     });
-    console.log("Toggle registration:", festId);
+    
+    setLoadingClub(null);
   };
 
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <div className="flex items-center gap-2">
-          <CalendarCheck className="h-5 w-5 text-event-accent" />
-          <CardTitle className="text-xl">Connect</CardTitle>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Register for upcoming fests and events
-        </p>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {fests.map((fest) => {
-            const isRegistered = registeredFests.has(fest.id);
-            const spotsPercentage = (fest.spotsLeft / fest.totalSpots) * 100;
-            const isAlmostFull = spotsPercentage < 20;
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="pb-3">
+          <CollapsibleTrigger className="flex items-center justify-between w-full">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Connect
+            </CardTitle>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
+          </CollapsibleTrigger>
+          <p className="text-xs text-muted-foreground text-left">
+            Join official clubs created by authorized members
+          </p>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="pt-0">
+            <div className="space-y-2 max-h-[220px] overflow-y-auto">
+              {clubs.map((club) => {
+                const isJoined = joinedClubs.has(club.id);
+                const isLoading = loadingClub === club.id;
 
-            return (
-              <div
-                key={fest.id}
-                className="rounded-md border p-4 hover-elevate"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3
-                        className="font-semibold truncate"
-                        data-testid={`text-fest-name-${fest.id}`}
-                      >
-                        {fest.name}
-                      </h3>
-                      <Badge variant="outline" className="flex-shrink-0 text-xs">
-                        {fest.category}
-                      </Badge>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span>
-                          {new Date(fest.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                          })}{" "}
-                          • {fest.time}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Users className="h-3.5 w-3.5" />
-                        <span className={isAlmostFull ? "text-event-accent font-medium" : ""}>
-                          {fest.spotsLeft} spots left
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant={isRegistered ? "secondary" : "default"}
-                    className="flex-shrink-0 gap-1.5"
-                    onClick={() => handleRegister(fest.id)}
-                    data-testid={`button-register-fest-${fest.id}`}
-                  >
-                    <Ticket className="h-3.5 w-3.5" />
-                    {isRegistered ? "Registered" : "Register"}
-                  </Button>
-                </div>
-                <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
+                return (
                   <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${100 - spotsPercentage}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
+                    key={club.id}
+                    className="flex items-center gap-3 p-2 rounded-md border hover-elevate"
+                  >
+                    <Avatar className="h-9 w-9 flex-shrink-0">
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                        {club.name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium truncate" data-testid={`text-club-name-${club.id}`}>
+                          {club.name}
+                        </p>
+                        {club.isOfficial && (
+                          <Shield className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{club.members} members</span>
+                        <span>•</span>
+                        <span>by {club.admin}</span>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={isJoined ? "secondary" : "default"}
+                      disabled={isLoading}
+                      onClick={() => handleJoin(club)}
+                      data-testid={`button-join-club-${club.id}`}
+                      className="flex-shrink-0"
+                    >
+                      {isLoading ? (
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      ) : isJoined ? (
+                        <>
+                          <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                          Joined
+                        </>
+                      ) : (
+                        "Join"
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }

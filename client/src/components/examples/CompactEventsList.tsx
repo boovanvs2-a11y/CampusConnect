@@ -9,6 +9,8 @@ export default function CompactEventsListExample() {
       time: "9:00 AM - 6:00 PM",
       location: "Innovation Center",
       category: "Technology",
+      spotsLeft: 45,
+      registered: false,
     },
     {
       id: "2",
@@ -17,6 +19,8 @@ export default function CompactEventsListExample() {
       time: "4:00 PM - 10:00 PM",
       location: "Open Air Theatre",
       category: "Cultural",
+      spotsLeft: 12,
+      registered: true,
     },
     {
       id: "3",
@@ -25,14 +29,8 @@ export default function CompactEventsListExample() {
       time: "3:00 PM - 5:00 PM",
       location: "Auditorium B",
       category: "Academic",
-    },
-    {
-      id: "4",
-      title: "Sports Meet",
-      date: "2025-12-22",
-      time: "8:00 AM",
-      location: "Sports Complex",
-      category: "Sports",
+      spotsLeft: 156,
+      registered: false,
     },
   ];
 

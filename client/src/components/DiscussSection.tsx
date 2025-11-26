@@ -3,11 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
+import {
   MessageCircle,
   ThumbsUp,
   BarChart3,
   Send,
-  Plus,
+  ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -28,11 +34,13 @@ type DiscussSectionProps = {
 };
 
 export function DiscussSection({ discussions }: DiscussSectionProps) {
+  const { toast } = useToast();
   const [question, setQuestion] = useState("");
   const [likedItems, setLikedItems] = useState<Set<string>>(
     new Set(discussions.filter((d) => d.liked).map((d) => d.id))
   );
   const [votedPolls, setVotedPolls] = useState<Record<string, number>>({});
+  const [isOpen, setIsOpen] = useState(true);
 
   const handleLike = (id: string) => {
     setLikedItems((prev) => {
@@ -44,181 +52,165 @@ export function DiscussSection({ discussions }: DiscussSectionProps) {
       }
       return next;
     });
-    console.log("Toggle like:", id);
   };
 
-  const handleVote = (discussionId: string, optionIndex: number) => {
+  const handleVote = (discussionId: string, optionIndex: number, optionName: string) => {
     setVotedPolls((prev) => ({
       ...prev,
       [discussionId]: optionIndex,
     }));
-    console.log("Vote on poll:", discussionId, "option:", optionIndex);
+    toast({
+      title: "Vote Recorded",
+      description: `You voted for "${optionName}"`,
+    });
   };
 
   const handleSubmitQuestion = () => {
     if (question.trim()) {
-      console.log("Submit question:", question);
+      toast({
+        title: "Question Posted",
+        description: "Your question is now visible to everyone",
+      });
       setQuestion("");
     }
   };
 
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <div className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5 text-discussion-accent" />
-          <CardTitle className="text-xl">Discuss</CardTitle>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Ask doubts, answer questions, and vote on polls
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Ask a question..."
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmitQuestion()}
-            data-testid="input-ask-question"
-          />
-          <Button
-            size="icon"
-            onClick={handleSubmitQuestion}
-            data-testid="button-submit-question"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="space-y-3">
-          {discussions.map((item) => {
-            const isLiked = likedItems.has(item.id);
-            const hasVoted = item.id in votedPolls || item.voted;
-
-            return (
-              <div
-                key={item.id}
-                className="rounded-md border p-4 space-y-3 hover-elevate"
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="pb-3">
+          <CollapsibleTrigger className="flex items-center justify-between w-full">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-discussion-accent" />
+              Discuss
+            </CardTitle>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
+          </CollapsibleTrigger>
+          <p className="text-xs text-muted-foreground text-left">
+            Ask doubts, answer questions, vote on polls
+          </p>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="pt-0 space-y-3">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ask a question..."
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmitQuestion()}
+                className="h-9"
+                data-testid="input-ask-question"
+              />
+              <Button
+                size="icon"
+                onClick={handleSubmitQuestion}
+                disabled={!question.trim()}
+                data-testid="button-submit-question"
               >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      item.type === "poll"
-                        ? "bg-discussion-accent/20 text-discussion-accent"
-                        : "bg-primary/10 text-primary"
-                    }`}
-                  >
-                    {item.type === "poll" ? (
-                      <BarChart3 className="h-4 w-4" />
-                    ) : (
-                      <MessageCircle className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium">{item.author}</span>
-                      <Badge
-                        variant="secondary"
-                        className="text-xs"
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-2 max-h-[220px] overflow-y-auto">
+              {discussions.map((item) => {
+                const isLiked = likedItems.has(item.id);
+                const hasVoted = item.id in votedPolls || item.voted;
+
+                return (
+                  <div key={item.id} className="rounded-md border p-2.5 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <div
+                        className={`h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          item.type === "poll"
+                            ? "bg-discussion-accent/20 text-discussion-accent"
+                            : "bg-primary/10 text-primary"
+                        }`}
                       >
-                        {item.type === "poll" ? "Poll" : "Question"}
-                      </Badge>
+                        {item.type === "poll" ? (
+                          <BarChart3 className="h-3 w-3" />
+                        ) : (
+                          <MessageCircle className="h-3 w-3" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-xs font-medium">{item.author}</span>
+                          <Badge variant="secondary" className="text-[10px] h-4 px-1">
+                            {item.type}
+                          </Badge>
+                        </div>
+                        <p className="text-sm" data-testid={`text-discussion-content-${item.id}`}>
+                          {item.content}
+                        </p>
+                      </div>
                     </div>
-                    <p
-                      className="text-sm"
-                      data-testid={`text-discussion-content-${item.id}`}
-                    >
-                      {item.content}
-                    </p>
-                  </div>
-                </div>
 
-                {item.type === "poll" && item.pollOptions && (
-                  <div className="space-y-2 ml-11">
-                    {item.pollOptions.map((option, index) => {
-                      const totalVotes = item.pollOptions!.reduce(
-                        (sum, o) => sum + o.votes,
-                        0
-                      );
-                      const percentage =
-                        totalVotes > 0
-                          ? Math.round((option.votes / totalVotes) * 100)
-                          : 0;
-                      const isSelected = votedPolls[item.id] === index;
+                    {item.type === "poll" && item.pollOptions && (
+                      <div className="space-y-1 ml-8">
+                        {item.pollOptions.map((option, index) => {
+                          const totalVotes = item.pollOptions!.reduce((sum, o) => sum + o.votes, 0);
+                          const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
+                          const isSelected = votedPolls[item.id] === index;
 
-                      return (
+                          return (
+                            <button
+                              key={index}
+                              className={`w-full text-left rounded-md border p-2 relative overflow-hidden text-sm ${
+                                hasVoted ? "cursor-default" : "hover-elevate active-elevate-2"
+                              } ${isSelected ? "border-primary" : ""}`}
+                              onClick={() => !hasVoted && handleVote(item.id, index, option.option)}
+                              disabled={hasVoted}
+                              data-testid={`button-poll-option-${item.id}-${index}`}
+                            >
+                              {hasVoted && (
+                                <div
+                                  className="absolute inset-0 bg-primary/10"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              )}
+                              <div className="relative flex items-center justify-between">
+                                <span className="text-xs">{option.option}</span>
+                                {hasVoted && (
+                                  <span className="text-xs text-muted-foreground">{percentage}%</span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-4 ml-8">
+                      <button
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => handleLike(item.id)}
+                        data-testid={`button-like-discussion-${item.id}`}
+                      >
+                        <ThumbsUp className={`h-3.5 w-3.5 ${isLiked ? "fill-primary text-primary" : ""}`} />
+                        <span>
+                          {(item.votes || 0) + (isLiked && !item.liked ? 1 : !isLiked && item.liked ? -1 : 0)}
+                        </span>
+                      </button>
+                      {item.type === "question" && (
                         <button
-                          key={index}
-                          className={`w-full text-left rounded-md border p-2.5 relative overflow-hidden transition-colors ${
-                            hasVoted
-                              ? "cursor-default"
-                              : "hover-elevate active-elevate-2"
-                          } ${isSelected ? "border-primary" : ""}`}
-                          onClick={() => !hasVoted && handleVote(item.id, index)}
-                          disabled={hasVoted}
-                          data-testid={`button-poll-option-${item.id}-${index}`}
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={() => toast({ title: "Answers", description: "Opening answers..." })}
+                          data-testid={`button-view-answers-${item.id}`}
                         >
-                          {hasVoted && (
-                            <div
-                              className="absolute inset-0 bg-primary/10"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          )}
-                          <div className="relative flex items-center justify-between">
-                            <span className="text-sm">{option.option}</span>
-                            {hasVoted && (
-                              <span className="text-sm text-muted-foreground">
-                                {percentage}%
-                              </span>
-                            )}
-                          </div>
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          <span>{item.answers || 0} answers</span>
                         </button>
-                      );
-                    })}
+                      )}
+                    </div>
                   </div>
-                )}
-
-                <div className="flex items-center gap-4 ml-11">
-                  <button
-                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => handleLike(item.id)}
-                    data-testid={`button-like-discussion-${item.id}`}
-                  >
-                    <ThumbsUp
-                      className={`h-4 w-4 ${isLiked ? "fill-primary text-primary" : ""}`}
-                    />
-                    <span>
-                      {(item.votes || 0) +
-                        (isLiked && !item.liked ? 1 : !isLiked && item.liked ? -1 : 0)}
-                    </span>
-                  </button>
-                  {item.type === "question" && (
-                    <button
-                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => console.log("View answers:", item.id)}
-                      data-testid={`button-view-answers-${item.id}`}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      <span>{item.answers || 0} answers</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <Button
-          variant="outline"
-          className="w-full gap-2"
-          onClick={() => console.log("Create poll")}
-          data-testid="button-create-poll"
-        >
-          <Plus className="h-4 w-4" />
-          Create Poll
-        </Button>
-      </CardContent>
+                );
+              })}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }

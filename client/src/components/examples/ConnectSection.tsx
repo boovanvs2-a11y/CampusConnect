@@ -1,38 +1,41 @@
 import { ConnectSection } from "../ConnectSection";
 
 export default function ConnectSectionExample() {
-  const mockFests = [
+  const mockClubs = [
     {
       id: "1",
-      name: "Tech Fest 2025",
-      date: "2025-12-15",
-      time: "9:00 AM",
-      spotsLeft: 45,
-      totalSpots: 200,
-      category: "Technology",
-      registered: false,
+      name: "IEEE RNSIT Chapter",
+      description: "Official IEEE student branch",
+      members: 342,
+      category: "Technical",
+      admin: "Dr. Priya Sharma",
+      adminInitials: "PS",
+      isOfficial: true,
+      joined: false,
     },
     {
       id: "2",
-      name: "Cultural Night",
-      date: "2025-12-20",
-      time: "6:00 PM",
-      spotsLeft: 12,
-      totalSpots: 100,
-      category: "Cultural",
-      registered: true,
+      name: "Google Developer Club",
+      description: "Google technologies & workshops",
+      members: 278,
+      category: "Technical",
+      admin: "Prof. Rajesh Kumar",
+      adminInitials: "RK",
+      isOfficial: true,
+      joined: true,
     },
     {
       id: "3",
-      name: "Sports Day",
-      date: "2025-12-22",
-      time: "8:00 AM",
-      spotsLeft: 156,
-      totalSpots: 300,
-      category: "Sports",
-      registered: false,
+      name: "Cultural Committee",
+      description: "Organizing campus festivals",
+      members: 156,
+      category: "Cultural",
+      admin: "Dr. Anita Desai",
+      adminInitials: "AD",
+      isOfficial: true,
+      joined: false,
     },
   ];
 
-  return <ConnectSection fests={mockFests} />;
+  return <ConnectSection clubs={mockClubs} />;
 }

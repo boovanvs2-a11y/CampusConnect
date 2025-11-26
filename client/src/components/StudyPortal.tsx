@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -6,7 +7,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Users, Clock, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { BookOpen, Users, Clock, FileText, ExternalLink, GraduationCap } from "lucide-react";
 
 type Note = {
   id: string;
@@ -42,67 +44,106 @@ const statusConfig = {
 };
 
 export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
+  const { toast } = useToast();
+  
   const notesBySubject = notes.reduce((acc, note) => {
     if (!acc[note.subject]) acc[note.subject] = [];
     acc[note.subject].push(note);
     return acc;
   }, {} as Record<string, Note[]>);
 
+  const handleOpenNote = (noteId: string, noteTitle: string) => {
+    toast({
+      title: "Opening Note",
+      description: `Loading "${noteTitle}"...`,
+    });
+  };
+
+  const handleContactFaculty = (member: Faculty) => {
+    if (member.status === "offline") {
+      toast({
+        title: "Faculty Offline",
+        description: `${member.name} is currently offline. Try emailing them.`,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Contacting Faculty",
+        description: `Opening chat with ${member.name}...`,
+      });
+    }
+  };
+
+  const handleOpenERP = () => {
+    window.open("https://www.rnsit.ac.in", "_blank");
+    toast({
+      title: "Opening ERP",
+      description: "Redirecting to RNSIT portal...",
+    });
+  };
+
   return (
-    <Card className="h-full backdrop-blur-sm bg-card/90">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl flex items-center gap-2">
+    <Card className="backdrop-blur-sm bg-card/90">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-primary" />
           Study Portal
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="rounded-md border bg-primary/5 p-4">
-          <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 text-primary mt-0.5" />
+      <CardContent className="space-y-4">
+        <div className="rounded-md border bg-primary/5 p-3">
+          <div className="flex items-start gap-2">
+            <Clock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-muted-foreground">
-                Next Class
-              </p>
-              <p className="text-lg font-semibold truncate" data-testid="text-next-class">
+              <p className="text-xs text-muted-foreground">Next Class</p>
+              <p className="text-sm font-semibold truncate" data-testid="text-next-class">
                 {nextClass.course}
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {nextClass.time} • {nextClass.location}
               </p>
             </div>
           </div>
         </div>
 
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-2 h-10"
+          onClick={handleOpenERP}
+          data-testid="link-erp"
+        >
+          <GraduationCap className="h-4 w-4 text-primary" />
+          <span className="flex-1 text-left">ERP Portal</span>
+          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+
         <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="notes">
-            <AccordionTrigger className="hover:no-underline" data-testid="button-notes-accordion">
+          <AccordionItem value="notes" className="border-b-0">
+            <AccordionTrigger className="hover:no-underline py-2" data-testid="button-notes-accordion">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                My Notes
-                <Badge variant="secondary" className="ml-2">
+                <span className="text-sm">My Notes</span>
+                <Badge variant="secondary" className="ml-1 text-xs">
                   {notes.length}
                 </Badge>
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="space-y-2 pt-2">
+              <div className="space-y-1 max-h-[180px] overflow-y-auto">
                 {Object.entries(notesBySubject).map(([subject, subjectNotes]) => (
-                  <div key={subject} className="space-y-1">
-                    <p className="text-sm font-medium text-foreground px-2">
+                  <div key={subject} className="space-y-0.5">
+                    <p className="text-xs font-medium text-muted-foreground px-2 py-1">
                       {subject}
                     </p>
                     {subjectNotes.map((note) => (
                       <button
                         key={note.id}
-                        className="w-full text-left px-2 py-2 rounded-md text-sm hover-elevate active-elevate-2"
-                        onClick={() => console.log("Open note:", note.id)}
+                        className="w-full text-left px-2 py-1.5 rounded-md text-sm hover-elevate active-elevate-2"
+                        onClick={() => handleOpenNote(note.id, note.title)}
                         data-testid={`button-note-${note.id}`}
                       >
-                        <p className="font-medium truncate">{note.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {note.date}
-                        </p>
+                        <p className="text-sm truncate">{note.title}</p>
+                        <p className="text-xs text-muted-foreground">{note.date}</p>
                       </button>
                     ))}
                   </div>
@@ -111,36 +152,32 @@ export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="faculty">
-            <AccordionTrigger className="hover:no-underline" data-testid="button-faculty-accordion">
+          <AccordionItem value="faculty" className="border-b-0">
+            <AccordionTrigger className="hover:no-underline py-2" data-testid="button-faculty-accordion">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Faculty Contacts
-                <Badge variant="secondary" className="ml-2">
-                  {faculty.filter((f) => f.status === "available").length}
+                <span className="text-sm">Faculty</span>
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {faculty.filter((f) => f.status === "available").length} online
                 </Badge>
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="space-y-1 pt-2">
+              <div className="space-y-0.5 max-h-[150px] overflow-y-auto">
                 {faculty.map((member) => (
                   <button
                     key={member.id}
-                    className="w-full text-left px-2 py-2 rounded-md hover-elevate active-elevate-2"
-                    onClick={() => console.log("Contact faculty:", member.id)}
+                    className="w-full text-left px-2 py-1.5 rounded-md hover-elevate active-elevate-2"
+                    onClick={() => handleContactFaculty(member)}
                     data-testid={`button-faculty-${member.id}`}
                   >
                     <div className="flex items-center gap-2">
                       <div
                         className="h-2 w-2 rounded-full flex-shrink-0"
-                        style={{
-                          backgroundColor: statusConfig[member.status].color,
-                        }}
+                        style={{ backgroundColor: statusConfig[member.status].color }}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {member.name}
-                        </p>
+                        <p className="text-sm truncate">{member.name}</p>
                         <p className="text-xs text-muted-foreground truncate">
                           {member.department}
                         </p>
