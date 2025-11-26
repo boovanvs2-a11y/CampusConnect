@@ -205,35 +205,6 @@ export function ClubsCarousel({ clubs, userRole = "student" }: ClubsCarouselProp
           </Dialog>
           </div>
         </CardHeader>
-        <div className="px-4 pb-4 grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
-          {clubs.map((club) => (
-            <Card key={club.id} className="hover-elevate cursor-pointer" data-testid={`card-club-${club.id}`}>
-              <CardHeader className="pb-2">
-                <div className="space-y-1">
-                  <CardTitle
-                    className="text-base hover:text-primary transition-colors"
-                    onClick={() => handleViewClub(club)}
-                    data-testid={`text-club-name-${club.id}`}
-                  >
-                    {club.name}
-                  </CardTitle>
-                  <p className="text-xs text-muted-foreground">{club.category} • {club.members} members</p>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Button
-                  size="sm"
-                  variant={joinedClubs.has(club.id) ? "outline" : "default"}
-                  className="w-full"
-                  onClick={() => handleJoinConfirm(club)}
-                  data-testid={`button-join-club-${club.id}`}
-                >
-                  {joinedClubs.has(club.id) ? "Leave Club" : "Join Club"}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
       </Card>
     </>
   );
