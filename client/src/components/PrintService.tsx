@@ -58,16 +58,22 @@ export function PrintService() {
 
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("filename", file.name);
-      formData.append("email", userEmail);
-
-      await fetch("/api/print-request", {
+      const response = await fetch("/api/print-request", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
+        body: JSON.stringify({
+          filename: file.name,
+          email: userEmail,
+          size: file.size,
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit");
+      }
 
       toast({
         title: "Print Request Sent!",
