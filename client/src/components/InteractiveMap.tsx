@@ -33,8 +33,8 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  // RNSIT Main Gate location as user's starting point
-  const [userLocation] = useState<[number, number]>([12.9725, 77.5942]);
+  // RNSIT Main Gate as user's starting point
+  const [userLocation] = useState<[number, number]>([12.9030, 77.5185]);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
@@ -52,7 +52,7 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
 
   const displayedLocations = searchQuery.length > 0 ? searchResults : allLocations;
 
-  // Haversine formula for accurate distance calculation
+  // Haversine formula for accurate distance calculation in kilometers
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371; // Earth's radius in km
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -94,7 +94,8 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       const L = window.L;
       if (!L || mapInstanceRef.current) return;
 
-      const map = L.map(mapRef.current).setView(userLocation, 17);
+      // Center map on RNSIT campus
+      const map = L.map(mapRef.current).setView([12.9017, 77.5190], 17);
       mapInstanceRef.current = map;
       leafletLoadedRef.current = true;
 
@@ -103,13 +104,13 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
         maxZoom: 19,
       }).addTo(map);
 
-      // Add user marker with pulse animation
+      // Add user marker at main gate
       const userIcon = L.divIcon({
         html: '<div class="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 text-white border-2 border-white shadow-lg animate-pulse" style="background: hsl(188, 97%, 35%); box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd" /></svg></div>',
         iconSize: [32, 32],
         className: "",
       });
-      L.marker(userLocation, { icon: userIcon, title: "Your Location" }).addTo(map);
+      L.marker(userLocation, { icon: userIcon, title: "You are here" }).addTo(map);
     };
 
     loadLeaflet();
@@ -168,7 +169,7 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       routeLayerRef.current = null;
     }
 
-    // Draw accurate route line with dashed pattern
+    // Draw accurate route line
     const routePoints: [number, number][] = [userLocation, [location.latitude, location.longitude]];
     routeLayerRef.current = L.polyline(routePoints, {
       color: "hsl(188, 97%, 35%)",
@@ -179,17 +180,18 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       lineJoin: "round",
     }).addTo(map);
 
-    // Fit bounds to show both points with padding
+    // Fit bounds
     const group = L.featureGroup(routePoints.map((p: [number, number]) => L.marker(p)));
     map.fitBounds(group.getBounds().pad(0.15), { maxZoom: 17 });
 
-    // Calculate accurate distance and show
+    // Calculate accurate distance
     const distance = getDistance(userLocation[0], userLocation[1], location.latitude, location.longitude);
-    const minutes = Math.ceil(distance / 0.005); // Rough estimate: ~18 km/h walking = 5 m/sec
+    const meters = Math.round(distance * 1000);
+    const walkingTime = Math.ceil((meters / 1000) / 1.4); // 1.4 km/h average walking speed
     
     toast({
       title: "Route to " + location.name,
-      description: `${distance.toFixed(2)} km • ~${minutes} min walk`,
+      description: `${meters}m • ~${walkingTime} min walk`,
     });
   };
 
@@ -200,7 +202,7 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       routeLayerRef.current = null;
     }
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView(userLocation, 17);
+      mapInstanceRef.current.setView([12.9017, 77.5190], 17);
     }
   };
 
@@ -256,7 +258,7 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
                       </p>
                     )}
                     <p className="text-xs text-primary font-medium mt-1.5">
-                      {getDistance(userLocation[0], userLocation[1], selectedLocation.latitude, selectedLocation.longitude).toFixed(2)} km away
+                      {Math.round(getDistance(userLocation[0], userLocation[1], selectedLocation.latitude, selectedLocation.longitude) * 1000)}m away
                     </p>
                   </div>
                   <Button
@@ -279,11 +281,13 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
                     {searchQuery.length > 0 ? `${displayedLocations.length} Results` : "Campus Locations"}
                   </p>
                   {displayedLocations.map((location: Location) => {
-                    const distance = getDistance(
-                      userLocation[0],
-                      userLocation[1],
-                      location.latitude,
-                      location.longitude
+                    const distanceMeters = Math.round(
+                      getDistance(
+                        userLocation[0],
+                        userLocation[1],
+                        location.latitude,
+                        location.longitude
+                      ) * 1000
                     );
                     return (
                       <button
@@ -300,11 +304,11 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{location.name}</p>
                             <p className="text-xs text-muted-foreground truncate">
-                              {location.address || "No address"}
+                              {location.address || "Campus Location"}
                             </p>
                           </div>
                           <span className="text-xs text-primary font-semibold flex-shrink-0">
-                            {distance.toFixed(2)} km
+                            {distanceMeters < 1000 ? `${distanceMeters}m` : `${(distanceMeters / 1000).toFixed(1)}km`}
                           </span>
                         </div>
                       </button>
@@ -319,6 +323,10 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
                   </p>
                 </div>
               )}
+            </div>
+
+            <div className="text-xs text-muted-foreground text-center pt-2 border-t">
+              <p>RNSIT Campus • Kengeri, Bangalore</p>
             </div>
           </CardContent>
         </CollapsibleContent>
