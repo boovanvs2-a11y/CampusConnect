@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Location, type InsertLocation } from "@shared/schema";
+import { type User, type InsertUser, type Location, type InsertLocation, type Announcement, type InsertAnnouncement, type Club, type InsertClub } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -12,23 +12,32 @@ export interface IStorage {
   updateLocation(id: string, location: Partial<InsertLocation>): Promise<Location | undefined>;
   deleteLocation(id: string): Promise<boolean>;
   searchLocations(query: string): Promise<Location[]>;
+  getAnnouncements(): Promise<Announcement[]>;
+  createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
+  getClubs(onlyApproved?: boolean): Promise<Club[]>;
+  getClubById(id: string): Promise<Club | undefined>;
+  createClub(club: InsertClub): Promise<Club>;
+  updateClubStatus(id: string, status: string, approvedBy?: string): Promise<Club | undefined>;
+  getPendingClubs(): Promise<Club[]>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private locations: Map<string, Location>;
+  private announcements: Map<string, Announcement>;
+  private clubs: Map<string, Club>;
 
   constructor() {
     this.users = new Map();
     this.locations = new Map();
+    this.announcements = new Map();
+    this.clubs = new Map();
     this.initializeDefaultLocations();
     this.initializeDefaultUsers();
   }
 
   private initializeDefaultLocations() {
-    // Real RNSIT Kengeri Campus Locations (Bangalore)
-    // Main Campus: 12.90179, 77.51838
-    // Campus is 170 acres, so locations are spread within reasonable walking distances
+    // Real RNSIT Kengeri Campus Locations
     const defaultLocations: Array<Location & {}> = [
       {
         id: "1",
@@ -138,7 +147,6 @@ export class MemStorage implements IStorage {
   }
 
   private initializeDefaultUsers() {
-    // Demo accounts for different roles
     const demoUsers: User[] = [
       {
         id: "student-demo",
@@ -185,7 +193,7 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
+    const user: User = { ...insertUser, id } as User;
     this.users.set(id, user);
     return user;
   }
@@ -228,6 +236,45 @@ export class MemStorage implements IStorage {
         loc.type.toLowerCase().includes(lower) ||
         (loc.address && loc.address.toLowerCase().includes(lower)),
     );
+  }
+
+  async getAnnouncements(): Promise<Announcement[]> {
+    return Array.from(this.announcements.values());
+  }
+
+  async createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement> {
+    const id = randomUUID();
+    const newAnnouncement: Announcement = { ...announcement, id } as Announcement;
+    this.announcements.set(id, newAnnouncement);
+    return newAnnouncement;
+  }
+
+  async getClubs(onlyApproved = false): Promise<Club[]> {
+    const clubs = Array.from(this.clubs.values());
+    return onlyApproved ? clubs.filter((c) => c.status === "approved") : clubs;
+  }
+
+  async getClubById(id: string): Promise<Club | undefined> {
+    return this.clubs.get(id);
+  }
+
+  async createClub(club: InsertClub): Promise<Club> {
+    const id = randomUUID();
+    const newClub: Club = { ...club, id } as Club;
+    this.clubs.set(id, newClub);
+    return newClub;
+  }
+
+  async updateClubStatus(id: string, status: string, approvedBy?: string): Promise<Club | undefined> {
+    const club = this.clubs.get(id);
+    if (!club) return undefined;
+    const updated = { ...club, status, approvedBy: approvedBy || club.approvedBy };
+    this.clubs.set(id, updated);
+    return updated;
+  }
+
+  async getPendingClubs(): Promise<Club[]> {
+    return Array.from(this.clubs.values()).filter((c) => c.status === "pending");
   }
 }
 

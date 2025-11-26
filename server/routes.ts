@@ -1,7 +1,7 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertLocationSchema, insertUserSchema } from "@shared/schema";
+import { insertLocationSchema, insertUserSchema, insertAnnouncementSchema, insertClubSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
@@ -60,6 +60,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ success: true });
     });
+  });
+
+  // Announcements routes - Lecturer and Principal only
+  app.get("/api/announcements", async (_req, res) => {
+    try {
+      const announcements = await storage.getAnnouncements();
+      res.json(announcements);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch announcements" });
+    }
+  });
+
+  app.post("/api/announcements", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user || (user.role !== "lecturer" && user.role !== "principal")) {
+        return res.status(403).json({ error: "Only lecturers and principal can create announcements" });
+      }
+
+      const announcement = await storage.createAnnouncement({
+        title: req.body.title,
+        content: req.body.content,
+        authorId: user.id,
+        authorRole: user.role,
+        createdAt: new Date().toISOString(),
+      });
+
+      res.status(201).json(announcement);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create announcement" });
+    }
+  });
+
+  // Clubs routes
+  app.get("/api/clubs", async (_req, res) => {
+    try {
+      const clubs = await storage.getClubs(true); // Only approved clubs
+      res.json(clubs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch clubs" });
+    }
+  });
+
+  app.post("/api/clubs", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const club = await storage.createClub({
+        name: req.body.name,
+        description: req.body.description,
+        creatorId: user.id,
+        status: "pending", // Students' clubs need approval
+        approvedBy: undefined,
+        createdAt: new Date().toISOString(),
+      });
+
+      res.status(201).json(club);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create club" });
+    }
+  });
+
+  // Principal-only: Get pending clubs and approve/reject
+  app.get("/api/clubs/pending", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user || user.role !== "principal") {
+        return res.status(403).json({ error: "Only principal can view pending clubs" });
+      }
+
+      const pendingClubs = await storage.getPendingClubs();
+      res.json(pendingClubs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch pending clubs" });
+    }
+  });
+
+  app.patch("/api/clubs/:id/approve", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user || user.role !== "principal") {
+        return res.status(403).json({ error: "Only principal can approve clubs" });
+      }
+
+      const club = await storage.updateClubStatus(req.params.id, "approved", user.id);
+      if (!club) {
+        return res.status(404).json({ error: "Club not found" });
+      }
+
+      res.json(club);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to approve club" });
+    }
+  });
+
+  app.patch("/api/clubs/:id/reject", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user || user.role !== "principal") {
+        return res.status(403).json({ error: "Only principal can reject clubs" });
+      }
+
+      const club = await storage.updateClubStatus(req.params.id, "rejected", user.id);
+      if (!club) {
+        return res.status(404).json({ error: "Club not found" });
+      }
+
+      res.json(club);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reject club" });
+    }
   });
 
   // Location API routes
