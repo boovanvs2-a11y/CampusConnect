@@ -20,7 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Bell, Plus } from "lucide-react";
 import { useState } from "react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 type PostAnnouncementFormProps = {
   onAnnouncementPosted?: () => void;
@@ -61,6 +61,7 @@ export function PostAnnouncementForm({ onAnnouncementPosted }: PostAnnouncementF
       setContent("");
       setCategory("notice");
       setIsOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/announcements"] });
       onAnnouncementPosted?.();
     } catch (error) {
       toast({

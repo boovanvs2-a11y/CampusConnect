@@ -13,11 +13,16 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
 import sportsClubBanner from "@assets/generated_images/sports_club_banner_image.png";
 
 export default function Home() {
   const [user, setUser] = useState<{ id: string; username: string; role: string } | null>(null);
+  const { data: announcements = [] } = useQuery({
+    queryKey: ["/api/announcements"],
+  });
 
   useEffect(() => {
     const userDataEl = document.getElementById("user-data") as HTMLInputElement;
@@ -61,12 +66,6 @@ export default function Home() {
     location: "Block A, Room 305",
   };
 
-  const mockAnnouncements = [
-    { id: "1", title: "Winter Break", content: "Campus will be closed from Dec 20 - Jan 5", date: "Today", category: "holiday" as const, author: "Principal", important: true },
-    { id: "2", title: "Maintenance Work", content: "WiFi will be down on Dec 18, 9 PM - 12 AM", date: "Yesterday", category: "maintenance" as const, author: "IT Department", important: true },
-    { id: "3", title: "Sports Day", content: "Inter-class sports competition on Dec 22", date: "2 days ago", category: "event" as const, author: "Sports Committee", important: false },
-    { id: "4", title: "Library Notice", content: "New study materials added to central library", date: "3 days ago", category: "notice" as const, author: "Librarian", important: false },
-  ];
 
   const mockClubs = [
     { id: "1", name: "Tech Innovation", description: "Build projects, attend hackathons.", members: 234, category: "Technology", banner: techClubBanner },
@@ -151,7 +150,7 @@ export default function Home() {
           )}
           <div className="lg:col-span-3 space-y-4">
             {user?.role === "principal" && <PrincipalPanel />}
-            <AnnouncementsSection announcements={mockAnnouncements} />
+            <AnnouncementsSection announcements={announcements} />
             <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={mockNextClass} />
             <PrintService />
           </div>
