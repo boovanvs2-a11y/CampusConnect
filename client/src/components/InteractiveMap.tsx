@@ -18,8 +18,29 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Location } from "@shared/schema";
 
+type OngoingClass = {
+  id: string;
+  course: string;
+  instructor: string;
+  time: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+};
+
+type OngoingEvent = {
+  id: string;
+  title: string;
+  time: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+};
+
 type InteractiveMapProps = {
   currentLocation: string;
+  ongoingClasses?: OngoingClass[];
+  ongoingEvents?: OngoingEvent[];
 };
 
 declare global {
@@ -28,7 +49,7 @@ declare global {
   }
 }
 
-export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
+export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEvents = [] }: InteractiveMapProps) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(true);
@@ -38,6 +59,8 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
+  const classMarkersRef = useRef<Map<string, any>>(new Map());
+  const eventMarkersRef = useRef<Map<string, any>>(new Map());
   const routeLayerRef = useRef<any>(null);
   const leafletLoadedRef = useRef(false);
 
@@ -149,6 +172,62 @@ export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
       markersRef.current.set(location.id, marker);
     });
   }, [displayedLocations]);
+
+  // Add ongoing class markers
+  useEffect(() => {
+    if (!mapInstanceRef.current || !window.L) return;
+
+    const L = window.L;
+    const map = mapInstanceRef.current;
+
+    classMarkersRef.current.forEach((marker: any) => marker.remove());
+    classMarkersRef.current.clear();
+
+    ongoingClasses.forEach((cls) => {
+      const classIcon = L.divIcon({
+        html: `<div class="flex items-center justify-center w-9 h-9 rounded-full bg-blue-500 text-white border-2 border-white shadow-lg text-lg" style="background: #3b82f6; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">📚</div>`,
+        iconSize: [36, 36],
+        className: "",
+      });
+
+      const marker = L.marker([cls.latitude, cls.longitude], {
+        icon: classIcon,
+        title: `Class: ${cls.course}`,
+      })
+        .addTo(map)
+        .bindPopup(`<div class="text-sm"><strong>${cls.course}</strong><br/>${cls.instructor}<br/>${cls.time}</div>`);
+
+      classMarkersRef.current.set(cls.id, marker);
+    });
+  }, [ongoingClasses]);
+
+  // Add ongoing event markers
+  useEffect(() => {
+    if (!mapInstanceRef.current || !window.L) return;
+
+    const L = window.L;
+    const map = mapInstanceRef.current;
+
+    eventMarkersRef.current.forEach((marker: any) => marker.remove());
+    eventMarkersRef.current.clear();
+
+    ongoingEvents.forEach((event) => {
+      const eventIcon = L.divIcon({
+        html: `<div class="flex items-center justify-center w-9 h-9 rounded-full bg-rose-500 text-white border-2 border-white shadow-lg text-lg" style="background: #f43f5e; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">🎉</div>`,
+        iconSize: [36, 36],
+        className: "",
+      });
+
+      const marker = L.marker([event.latitude, event.longitude], {
+        icon: eventIcon,
+        title: `Event: ${event.title}`,
+      })
+        .addTo(map)
+        .bindPopup(`<div class="text-sm"><strong>${event.title}</strong><br/>${event.time}</div>`);
+
+      eventMarkersRef.current.set(event.id, marker);
+    });
+  }, [ongoingEvents]);
 
   const navigateToLocation = (location: Location) => {
     setSelectedLocation(location);

@@ -99,6 +99,16 @@ export default function Home() {
     { id: "3", title: "AI Guest Lecture", date: "2025-12-18", time: "3:00 PM - 5:00 PM", location: "Auditorium B", category: "Academic", spotsLeft: 156, registered: false },
   ];
 
+  const mockOngoingClasses = [
+    { id: "1", course: "Advanced Algorithms", instructor: "Dr. Sarah Johnson", time: "2:00 PM - 3:30 PM", location: "Block A, Room 305", latitude: 12.9022, longitude: 77.5188 },
+    { id: "2", course: "Database Design", instructor: "Prof. Michael Chen", time: "11:00 AM - 12:30 PM", location: "CSE Lab", latitude: 12.9012, longitude: 77.5200 },
+  ];
+
+  const mockOngoingEvents = [
+    { id: "1", title: "Coding Contest", time: "1:00 PM - 4:00 PM", location: "Auditorium", latitude: 12.9008, longitude: 77.5192 },
+    { id: "2", title: "Campus Cleanup", time: "3:30 PM - 5:00 PM", location: "Sports Complex", latitude: 12.9010, longitude: 77.5175 },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
@@ -149,7 +159,7 @@ export default function Home() {
           <div className="lg:col-span-4 space-y-4">
             <SocializeSection posts={mockPosts} />
             <CompactEventsList events={mockEvents} />
-            <InteractiveMap currentLocation="Innovation Center, Block C" />
+            <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
           </div>
         </div>
       </main>
