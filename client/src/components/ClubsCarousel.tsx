@@ -45,12 +45,12 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
   const [joinedClubs, setJoinedClubs] = useState<Set<string>>(new Set());
 
   // Fetch approved clubs from backend
-  const { data: approvedClubs = [], isLoading } = useQuery({
+  const { data: approvedClubs = [] } = useQuery({
     queryKey: ["/api/clubs"],
-  });
+  }) as any;
 
   // Combine real approved clubs with mock clubs for display
-  const displayClubs = approvedClubs.length > 0 ? approvedClubs : mockClubs;
+  const displayClubs = approvedClubs && approvedClubs.length > 0 ? approvedClubs : mockClubs;
 
   const handleCreateClub = async () => {
     if (!clubName.trim() || !clubCategory.trim() || !clubDesc.trim()) {
