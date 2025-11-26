@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Loader } from "lucide-react";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 type Club = {
   id: string;
@@ -31,11 +33,15 @@ type ClubsCarouselProps = {
 
 export function ClubsCarousel({ clubs, userRole = "student" }: ClubsCarouselProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [clubName, setClubName] = useState("");
   const [clubCategory, setClubCategory] = useState("");
   const [clubDesc, setClubDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [joinConfirmOpen, setJoinConfirmOpen] = useState(false);
+  const [selectedClub, setSelectedClub] = useState<Club | null>(null);
+  const [joinedClubs, setJoinedClubs] = useState<Set<string>>(new Set());
 
   const handleCreateClub = async () => {
     if (!clubName.trim() || !clubCategory.trim() || !clubDesc.trim()) {
@@ -75,12 +81,67 @@ export function ClubsCarousel({ clubs, userRole = "student" }: ClubsCarouselProp
     }
   };
 
+  const handleJoinConfirm = (club: Club) => {
+    setSelectedClub(club);
+    setJoinConfirmOpen(true);
+  };
+
+  const handleConfirmJoin = () => {
+    if (!selectedClub) return;
+    
+    const newJoined = new Set(joinedClubs);
+    const isJoining = !newJoined.has(selectedClub.id);
+    
+    if (isJoining) {
+      newJoined.add(selectedClub.id);
+      toast({
+        title: "Joined Successfully",
+        description: `You've joined ${selectedClub.name}!`,
+      });
+    } else {
+      newJoined.delete(selectedClub.id);
+      toast({
+        title: "Left Club",
+        description: `You've left ${selectedClub.name}`,
+      });
+    }
+    
+    setJoinedClubs(newJoined);
+    setJoinConfirmOpen(false);
+  };
+
+  const handleViewClub = (club: Club) => {
+    setLocation(`/club?id=${club.id}`);
+  };
+
   return (
-    <Card className="backdrop-blur-sm bg-card/90">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Campus Clubs</CardTitle>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <>
+      <Dialog open={joinConfirmOpen} onOpenChange={setJoinConfirmOpen}>
+        <DialogContent data-testid="dialog-join-confirm">
+          <DialogHeader>
+            <DialogTitle>Confirm Action</DialogTitle>
+            <DialogDescription>
+              {selectedClub && joinedClubs.has(selectedClub.id)
+                ? `Are you sure you want to leave ${selectedClub.name}?`
+                : `Are you sure you want to join ${selectedClub?.name}?`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setJoinConfirmOpen(false)} data-testid="button-cancel-join">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmJoin} data-testid="button-confirm-join">
+              {selectedClub && joinedClubs.has(selectedClub.id) ? "Leave" : "Join"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Card className="backdrop-blur-sm bg-card/90">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Campus Clubs</CardTitle>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="ghost"
@@ -142,8 +203,38 @@ export function ClubsCarousel({ clubs, userRole = "student" }: ClubsCarouselProp
               </div>
             </DialogContent>
           </Dialog>
+          </div>
+        </CardHeader>
+        <div className="px-4 pb-4 grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+          {clubs.map((club) => (
+            <Card key={club.id} className="hover-elevate cursor-pointer" data-testid={`card-club-${club.id}`}>
+              <CardHeader className="pb-2">
+                <div className="space-y-1">
+                  <CardTitle
+                    className="text-base hover:text-primary transition-colors"
+                    onClick={() => handleViewClub(club)}
+                    data-testid={`text-club-name-${club.id}`}
+                  >
+                    {club.name}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">{club.category} • {club.members} members</p>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <Button
+                  size="sm"
+                  variant={joinedClubs.has(club.id) ? "outline" : "default"}
+                  className="w-full"
+                  onClick={() => handleJoinConfirm(club)}
+                  data-testid={`button-join-club-${club.id}`}
+                >
+                  {joinedClubs.has(club.id) ? "Leave Club" : "Join Club"}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </CardHeader>
-    </Card>
+      </Card>
+    </>
   );
 }
