@@ -1,5 +1,6 @@
 import { StudyPortal } from "@/components/StudyPortal";
 import { AnnouncementsSection } from "@/components/AnnouncementsSection";
+import { PrintService } from "@/components/PrintService";
 import { ClubsCarousel } from "@/components/ClubsCarousel";
 import { ConnectSection } from "@/components/ConnectSection";
 import { DiscussSection } from "@/components/DiscussSection";
@@ -17,7 +18,8 @@ export default function Home() {
   const [user, setUser] = useState<{ id: string; username: string; role: string } | null>(null);
 
   useEffect(() => {
-    const userData = JSON.parse(document.getElementById("user-data")?.value || "null");
+    const userDataEl = document.getElementById("user-data") as HTMLInputElement;
+    const userData = userDataEl?.value ? JSON.parse(userDataEl.value) : null;
     setUser(userData);
   }, []);
 
@@ -132,6 +134,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-3 space-y-4">
             <AnnouncementsSection announcements={mockAnnouncements} />
+            <PrintService />
             <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={mockNextClass} />
           </div>
 

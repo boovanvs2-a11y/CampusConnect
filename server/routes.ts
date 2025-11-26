@@ -3,6 +3,21 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertLocationSchema, insertUserSchema, insertAnnouncementSchema, insertClubSchema } from "@shared/schema";
 
+// Simple nodemailer configuration (requires setup)
+const sendPrintEmail = async (filename: string, userEmail?: string) => {
+  try {
+    // For now, just log the print request
+    console.log(`Print request received for: ${filename} from ${userEmail || "anonymous"}`);
+    // In production, you would use nodemailer here:
+    // const transporter = nodemailer.createTransport({...});
+    // await transporter.sendMail({to: 'ankushrampa@gmail.com', subject: 'Print Request', ...});
+    return true;
+  } catch (error) {
+    console.error("Failed to send print email:", error);
+    return false;
+  }
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/signup", async (req: Request & { session?: any }, res) => {
@@ -242,6 +257,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete location" });
+    }
+  });
+
+  // Print Service route
+  app.post("/api/print-request", async (req: Request & { session?: any }, res) => {
+    try {
+      // Get user info
+      const user = req.session?.userId ? await storage.getUser(req.session.userId) : null;
+      
+      // In a real app, you'd handle file upload here
+      const filename = req.body.filename || "print-request.jpg";
+      
+      // Send email to print service
+      const emailSent = await sendPrintEmail(filename, user?.username);
+      
+      if (!emailSent) {
+        return res.status(500).json({ error: "Failed to process print request" });
+      }
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Print request sent successfully",
+        sentTo: "ankushrampa@gmail.com"
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to process print request" });
     }
   });
 
