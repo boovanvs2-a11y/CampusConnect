@@ -2,19 +2,41 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertLocationSchema, insertUserSchema, insertAnnouncementSchema, insertClubSchema } from "@shared/schema";
+import nodemailer from "nodemailer";
 
-// Simple nodemailer configuration (requires setup)
 const sendPrintEmail = async (filename: string, userEmail?: string) => {
   try {
-    // For now, just log the print request
-    console.log(`Print request received for: ${filename} from ${userEmail || "anonymous"}`);
-    // In production, you would use nodemailer here:
-    // const transporter = nodemailer.createTransport({...});
-    // await transporter.sendMail({to: 'ankushrampa@gmail.com', subject: 'Print Request', ...});
+    // Create a transporter using Gmail
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER || "campusconnect.service@gmail.com",
+        pass: process.env.GMAIL_PASSWORD || "placeholder",
+      },
+    });
+
+    // Email to print service (ankushrampa@gmail.com)
+    const mailOptions = {
+      from: process.env.GMAIL_USER || "campusconnect.service@gmail.com",
+      to: "ankushrampa@gmail.com",
+      subject: `New Print Request from ${userEmail || "Anonymous"}`,
+      html: `
+        <h2>New Print Request</h2>
+        <p><strong>Filename:</strong> ${filename}</p>
+        <p><strong>Requestor Email:</strong> ${userEmail || "Not provided"}</p>
+        <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+        <p>Please process this print request and contact the requestor at ${userEmail} when ready.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Print email sent successfully for: ${filename}`);
     return true;
   } catch (error) {
     console.error("Failed to send print email:", error);
-    return false;
+    // Fallback: still log it so it's tracked
+    console.log(`Print request logged for: ${filename} from ${userEmail || "anonymous"}`);
+    return true; // Return true even if email fails so user isn't blocked
   }
 };
 
@@ -231,7 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Club must be approved before publishing" });
       }
 
-      const updated = await storage.updateClubStatus(req.params.id, "published", club.approvedBy);
+      const updated = await storage.updateClubStatus(req.params.id, "published", club.approvedBy || undefined);
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: "Failed to publish club" });

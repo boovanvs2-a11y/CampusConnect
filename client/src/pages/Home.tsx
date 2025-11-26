@@ -144,6 +144,11 @@ export default function Home() {
 
       <main className="container mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {user?.role === "student" && (
+            <div className="lg:col-span-12">
+              <ApprovedClubsNotification />
+            </div>
+          )}
           <div className="lg:col-span-3 space-y-4">
             {user?.role === "principal" && <PrincipalPanel />}
             <AnnouncementsSection announcements={mockAnnouncements} />
