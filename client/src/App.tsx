@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LoginModal } from "@/components/LoginModal";
 import Home from "@/pages/Home";
+import ClubDetail from "@/pages/ClubDetail";
 import NotFound from "@/pages/not-found";
 import { useState, useEffect } from "react";
 
@@ -13,6 +14,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/club" component={ClubDetail} />
       <Route component={NotFound} />
     </Switch>
   );

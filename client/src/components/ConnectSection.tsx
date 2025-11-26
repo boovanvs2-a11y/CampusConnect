@@ -10,6 +10,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Users, ChevronDown, Shield, CheckCircle } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 type Club = {
   id: string;
@@ -29,11 +30,16 @@ type ConnectSectionProps = {
 
 export function ConnectSection({ clubs }: ConnectSectionProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [joinedClubs, setJoinedClubs] = useState<Set<string>>(
     new Set(clubs.filter((c) => c.joined).map((c) => c.id))
   );
   const [loadingClub, setLoadingClub] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
+
+  const handleClubClick = (clubId: string) => {
+    setLocation(`/club?id=${clubId}`);
+  };
 
   const handleJoin = async (club: Club) => {
     setLoadingClub(club.id);
@@ -88,7 +94,9 @@ export function ConnectSection({ clubs }: ConnectSectionProps) {
                 return (
                   <div
                     key={club.id}
-                    className="flex items-center gap-3 p-2 rounded-md border hover-elevate"
+                    className="flex items-center gap-3 p-2 rounded-md border hover-elevate cursor-pointer"
+                    onClick={() => handleClubClick(club.id)}
+                    data-testid={`card-club-${club.id}`}
                   >
                     <Avatar className="h-9 w-9 flex-shrink-0">
                       <AvatarFallback className="text-xs bg-primary/10 text-primary">

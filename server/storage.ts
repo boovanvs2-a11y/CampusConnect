@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Location, type InsertLocation, type Announcement, type InsertAnnouncement, type Club, type InsertClub } from "@shared/schema";
+import { type User, type InsertUser, type Location, type Announcement, type Club, type StudentProfile, type InsertStudentProfile, type ClubMember, type Event, type EventAttendee, type StudentProject } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -8,17 +8,20 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getLocations(): Promise<Location[]>;
   getLocationById(id: string): Promise<Location | undefined>;
-  createLocation(location: InsertLocation): Promise<Location>;
-  updateLocation(id: string, location: Partial<InsertLocation>): Promise<Location | undefined>;
+  createLocation(location: any): Promise<Location>;
+  updateLocation(id: string, location: Partial<any>): Promise<Location | undefined>;
   deleteLocation(id: string): Promise<boolean>;
   searchLocations(query: string): Promise<Location[]>;
   getAnnouncements(): Promise<Announcement[]>;
-  createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
+  createAnnouncement(announcement: any): Promise<Announcement>;
   getClubs(onlyApproved?: boolean): Promise<Club[]>;
   getClubById(id: string): Promise<Club | undefined>;
-  createClub(club: InsertClub): Promise<Club>;
+  createClub(club: any): Promise<Club>;
   updateClubStatus(id: string, status: string, approvedBy?: string): Promise<Club | undefined>;
   getPendingClubs(): Promise<Club[]>;
+  getStudentProfile(userId: string): Promise<StudentProfile | undefined>;
+  getClubMembers(clubId: string): Promise<ClubMember[]>;
+  getClubMessages(clubId: string): Promise<any[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -26,12 +29,18 @@ export class MemStorage implements IStorage {
   private locations: Map<string, Location>;
   private announcements: Map<string, Announcement>;
   private clubs: Map<string, Club>;
+  private clubMembers: Map<string, ClubMember[]>;
+  private clubMessages: Map<string, any[]>;
+  private studentProfiles: Map<string, StudentProfile>;
 
   constructor() {
     this.users = new Map();
     this.locations = new Map();
     this.announcements = new Map();
     this.clubs = new Map();
+    this.clubMembers = new Map();
+    this.clubMessages = new Map();
+    this.studentProfiles = new Map();
     this.initializeDefaultLocations();
     this.initializeDefaultUsers();
   }
@@ -275,6 +284,18 @@ export class MemStorage implements IStorage {
 
   async getPendingClubs(): Promise<Club[]> {
     return Array.from(this.clubs.values()).filter((c) => c.status === "pending");
+  }
+
+  async getStudentProfile(userId: string): Promise<StudentProfile | undefined> {
+    return this.studentProfiles.get(userId);
+  }
+
+  async getClubMembers(clubId: string): Promise<ClubMember[]> {
+    return this.clubMembers.get(clubId) || [];
+  }
+
+  async getClubMessages(clubId: string): Promise<any[]> {
+    return this.clubMessages.get(clubId) || [];
   }
 }
 
