@@ -65,10 +65,7 @@ export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
   }, {} as Record<string, Note[]>);
 
   const handleOpenNote = (noteId: string, noteTitle: string) => {
-    toast({
-      title: "Opening Note",
-      description: `Loading "${noteTitle}"...`,
-    });
+    setLocation(`/note?id=${noteId}`);
   };
 
   const handleContactFaculty = (member: Faculty) => {
