@@ -10,7 +10,7 @@ import { DiscussSection } from "@/components/DiscussSection";
 import { SocializeSection } from "@/components/SocializeSection";
 import { CompactEventsList } from "@/components/CompactEventsList";
 import { InteractiveMap } from "@/components/InteractiveMap";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ColorPicker } from "@/components/ColorPicker";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -128,7 +128,7 @@ export default function Home() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
+            <ColorPicker />
             <Button
               variant="outline"
               size="sm"
