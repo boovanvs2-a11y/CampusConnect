@@ -232,6 +232,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's rejected clubs
+  app.get("/api/my-clubs/rejected", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const allClubs = await storage.getClubs(false);
+      const userRejectedClubs = allClubs.filter(
+        (c) => c.creatorId === user.id && c.status === "rejected"
+      );
+
+      res.json(userRejectedClubs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch rejected clubs" });
+    }
+  });
+
   // Publish an approved club
   app.patch("/api/clubs/:id/publish", async (req: Request & { session?: any }, res) => {
     try {
