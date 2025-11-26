@@ -36,9 +36,9 @@ export function AISidebar() {
         title="Toggle AI assistant"
       >
         {isExpanded ? (
-          <ChevronLeft className="h-5 w-5" />
-        ) : (
           <ChevronRight className="h-5 w-5" />
+        ) : (
+          <ChevronLeft className="h-5 w-5" />
         )}
       </button>
 

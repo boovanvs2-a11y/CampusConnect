@@ -153,9 +153,11 @@ export default function Home() {
           )}
           
           <div className="lg:col-span-3 space-y-4">
-            <CalendarSidebar />
+            <div className="flex gap-2">
+              <CalendarSidebar />
+              <AnnouncementsSection announcements={announcements} />
+            </div>
             {user?.role === "principal" && <PrincipalPanel />}
-            <AnnouncementsSection announcements={announcements} />
             <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={mockNextClass} />
             <PrintService />
           </div>
