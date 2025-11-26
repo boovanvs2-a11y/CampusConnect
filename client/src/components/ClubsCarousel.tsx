@@ -24,16 +24,27 @@ type Club = {
 
 type ClubsCarouselProps = {
   clubs: Club[];
+  userRole?: string;
 };
 
-export function ClubsCarousel({ clubs }: ClubsCarouselProps) {
+export function ClubsCarousel({ clubs, userRole = "student" }: ClubsCarouselProps) {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [clubName, setClubName] = useState("");
   const [clubCategory, setClubCategory] = useState("");
   const [clubDesc, setClubDesc] = useState("");
+  const isAuthorized = userRole === "lecturer" || userRole === "principal";
 
   const handleCreateClub = () => {
+    if (!isAuthorized) {
+      toast({
+        title: "Access Denied",
+        description: "Only lecturers and principals can create clubs",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!clubName.trim() || !clubCategory.trim() || !clubDesc.trim()) {
       toast({
         title: "Fill All Fields",
@@ -59,18 +70,18 @@ export function ClubsCarousel({ clubs }: ClubsCarouselProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Campus Clubs</CardTitle>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 h-8"
-                data-testid="button-create-club"
-              >
-                <Lock className="h-3 w-3" />
-                <Plus className="h-3 w-3" />
-              </Button>
-            </DialogTrigger>
+          {isAuthorized ? (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 h-8"
+                  data-testid="button-create-club"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </DialogTrigger>
             <DialogContent data-testid="dialog-create-club">
               <DialogHeader>
                 <DialogTitle>Create New Club</DialogTitle>

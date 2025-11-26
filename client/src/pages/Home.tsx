@@ -7,11 +7,25 @@ import { SocializeSection } from "@/components/SocializeSection";
 import { CompactEventsList } from "@/components/CompactEventsList";
 import { InteractiveMap } from "@/components/InteractiveMap";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
 import sportsClubBanner from "@assets/generated_images/sports_club_banner_image.png";
 
 export default function Home() {
+  const [user, setUser] = useState<{ id: string; username: string; role: string } | null>(null);
+
+  useEffect(() => {
+    const userData = JSON.parse(document.getElementById("user-data")?.value || "null");
+    setUser(userData);
+  }, []);
+
+  const handleLogout = () => {
+    const logoutBtn = document.getElementById("logout-trigger") as HTMLButtonElement;
+    if (logoutBtn) logoutBtn.click();
+    window.location.href = "/";
+  };
   useEffect(() => {
     const script = document.createElement("script");
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -93,8 +107,24 @@ export default function Home() {
             <h1 className="text-lg font-bold" data-testid="text-app-title">
               CampusConnect
             </h1>
+            {user && (
+              <span className="text-xs text-muted-foreground ml-4">
+                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+              </span>
+            )}
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              data-testid="button-logout"
+            >
+              <LogOut className="h-4 w-4 mr-1.5" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -106,7 +136,7 @@ export default function Home() {
           </div>
 
           <div className="lg:col-span-5 space-y-4">
-            <ClubsCarousel clubs={mockClubs} />
+            <ClubsCarousel clubs={mockClubs} userRole={user?.role || "student"} />
             <ConnectSection clubs={mockConnectClubs} />
             <DiscussSection discussions={mockDiscussions} />
           </div>

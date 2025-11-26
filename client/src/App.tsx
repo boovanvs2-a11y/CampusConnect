@@ -21,6 +21,7 @@ function Router() {
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<{ id: string; username: string; role: string } | null>(null);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -30,6 +31,8 @@ function AppContent() {
           credentials: "include",
         });
         if (res.ok) {
+          const userData = await res.json();
+          setUser(userData);
           setIsLoggedIn(true);
         }
       } catch (error) {
@@ -41,6 +44,19 @@ function AppContent() {
 
     checkAuth();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      setIsLoggedIn(false);
+      setUser(null);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -57,9 +73,14 @@ function AppContent() {
     <>
       <LoginModal
         open={!isLoggedIn}
-        onLoginSuccess={() => setIsLoggedIn(true)}
+        onLoginSuccess={(userData) => {
+          setUser(userData);
+          setIsLoggedIn(true);
+        }}
       />
-      {isLoggedIn && <Router />}
+      {isLoggedIn && user && <Router />}
+      {isLoggedIn && <input type="hidden" id="user-data" value={JSON.stringify(user)} />}
+      {isLoggedIn && <button id="logout-trigger" onClick={handleLogout} style={{ display: 'none' }} />}
     </>
   );
 }
