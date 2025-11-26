@@ -7,10 +7,22 @@ import { SocializeSection } from "@/components/SocializeSection";
 import { CompactEventsList } from "@/components/CompactEventsList";
 import { InteractiveMap } from "@/components/InteractiveMap";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useEffect } from "react";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
 import sportsClubBanner from "@assets/generated_images/sports_club_banner_image.png";
 
 export default function Home() {
+  useEffect(() => {
+    const script = document.createElement("script");
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (apiKey) {
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
   const mockNotes = [
     { id: "1", title: "Linear Algebra - Eigenvalues", subject: "Mathematics", date: "2 days ago" },
     { id: "2", title: "Calculus - Integration", subject: "Mathematics", date: "1 week ago" },
@@ -70,13 +82,6 @@ export default function Home() {
     { id: "3", title: "AI Guest Lecture", date: "2025-12-18", time: "3:00 PM - 5:00 PM", location: "Auditorium B", category: "Academic", spotsLeft: 156, registered: false },
   ];
 
-  const mockLocations = [
-    { id: "1", name: "Central Library", type: "library" as const, distance: "150m" },
-    { id: "2", name: "Campus Canteen", type: "food" as const, distance: "200m" },
-    { id: "3", name: "Block A - CS Dept", type: "building" as const, distance: "300m" },
-    { id: "4", name: "Sports Complex", type: "sports" as const, distance: "450m" },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
@@ -109,7 +114,7 @@ export default function Home() {
           <div className="lg:col-span-4 space-y-4">
             <SocializeSection posts={mockPosts} />
             <CompactEventsList events={mockEvents} />
-            <InteractiveMap currentLocation="Innovation Center, Block C" nearbyLocations={mockLocations} />
+            <InteractiveMap currentLocation="Innovation Center, Block C" />
           </div>
         </div>
       </main>

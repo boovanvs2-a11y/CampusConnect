@@ -12,66 +12,117 @@ import {
   Navigation,
   Locate,
   ChevronDown,
-  Building,
-  Coffee,
-  BookOpen,
-  Dumbbell,
+  Loader,
 } from "lucide-react";
-import { useState } from "react";
-
-type Location = {
-  id: string;
-  name: string;
-  type: "building" | "food" | "library" | "sports";
-  distance: string;
-};
+import { useState, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import type { Location } from "@shared/schema";
 
 type InteractiveMapProps = {
   currentLocation: string;
-  nearbyLocations: Location[];
 };
 
-const locationIcons = {
-  building: Building,
-  food: Coffee,
-  library: BookOpen,
-  sports: Dumbbell,
-};
-
-const locationColors = {
-  building: { bg: "bg-blue-500/15", text: "text-blue-600 dark:text-blue-400", ring: "ring-blue-500" },
-  food: { bg: "bg-orange-500/15", text: "text-orange-600 dark:text-orange-400", ring: "ring-orange-500" },
-  library: { bg: "bg-green-500/15", text: "text-green-600 dark:text-green-400", ring: "ring-green-500" },
-  sports: { bg: "bg-purple-500/15", text: "text-purple-600 dark:text-purple-400", ring: "ring-purple-500" },
-};
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 
 export function InteractiveMap({
   currentLocation,
-  nearbyLocations,
 }: InteractiveMapProps) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(true);
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
 
-  const filteredLocations = searchQuery
-    ? nearbyLocations.filter((loc) =>
-        loc.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : nearbyLocations;
+  const { data: locations = [], isLoading } = useQuery({
+    queryKey: ["/api/locations"],
+  });
+
+  const { data: searchResults = [] } = useQuery({
+    queryKey: ["/api/locations/search", searchQuery],
+    enabled: searchQuery.length > 0,
+  });
+
+  const displayedLocations = searchQuery.length > 0 ? searchResults : locations;
+
+  useEffect(() => {
+    if (!mapRef.current || !window.google) return;
+
+    const map = new window.google.maps.Map(mapRef.current, {
+      zoom: 16,
+      center: { lat: 12.9716, lng: 77.5946 },
+      styles: [
+        {
+          featureType: "all",
+          elementType: "labels.text.fill",
+          stylers: [{ color: "#666666" }],
+        },
+      ],
+    });
+
+    mapInstanceRef.current = map;
+
+    locations.forEach((location: Location) => {
+      const marker = new window.google.maps.Marker({
+        position: { lat: location.latitude, lng: location.longitude },
+        map,
+        title: location.name,
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: getMarkerColor(location.type),
+          fillOpacity: 0.8,
+          strokeColor: "#ffffff",
+          strokeWeight: 2,
+        },
+      });
+
+      marker.addListener("click", () => {
+        setSelectedLocation(location);
+        map.setCenter({
+          lat: location.latitude,
+          lng: location.longitude,
+        });
+      });
+    });
+  }, [locations]);
+
+  const getMarkerColor = (type: string) => {
+    const colors: Record<string, string> = {
+      building: "#3b82f6",
+      food: "#f97316",
+      library: "#22c55e",
+      sports: "#a855f7",
+    };
+    return colors[type] || "#06b6d4";
+  };
 
   const handleNavigate = (location: Location) => {
-    setSelectedLocation(location.id);
+    setSelectedLocation(location);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setCenter({
+        lat: location.latitude,
+        lng: location.longitude,
+      });
+    }
     toast({
-      title: "Navigation Started",
-      description: `Directions to ${location.name} (${location.distance})`,
+      title: "Location Selected",
+      description: `Navigate to ${location.name}`,
     });
   };
 
   const handleCenterLocation = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setCenter({ lat: 12.9716, lng: 77.5946 });
+      mapInstanceRef.current.setZoom(16);
+    }
     toast({
-      title: "Location Updated",
-      description: `You are at ${currentLocation}`,
+      title: "Centered",
+      description: "Map centered on campus",
     });
   };
 
@@ -94,7 +145,7 @@ export function InteractiveMap({
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Where to?"
+                placeholder="Search locations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 h-9"
@@ -102,43 +153,18 @@ export function InteractiveMap({
               />
             </div>
 
-            <div className="relative h-40 rounded-md overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-primary/10">
-              <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 400 200">
-                <defs>
-                  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5"/>
-                  </pattern>
-                </defs>
-                <rect width="400" height="200" fill="url(#grid)" />
-              </svg>
+            <div className="relative h-64 rounded-md overflow-hidden border-2 border-primary/20 bg-background">
+              <div
+                ref={mapRef}
+                className="w-full h-full"
+                data-testid="map-container"
+              />
 
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="flex flex-wrap gap-3 p-4 justify-center items-center">
-                  {nearbyLocations.map((loc) => {
-                    const Icon = locationIcons[loc.type];
-                    const config = locationColors[loc.type];
-                    const isSelected = selectedLocation === loc.id;
-                    return (
-                      <button
-                        key={loc.id}
-                        onClick={() => handleNavigate(loc)}
-                        className={`flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition-all transform ${
-                          isSelected 
-                            ? `${config.bg} ${config.text} scale-110 ring-2 ${config.ring}` 
-                            : `hover:${config.bg} hover:${config.text}`
-                        }`}
-                        data-testid={`button-map-pin-${loc.id}`}
-                      >
-                        <div className={`h-9 w-9 rounded-full flex items-center justify-center ${config.bg} ${config.text}`}>
-                          <Icon className="h-4.5 w-4.5" />
-                        </div>
-                        <span className="text-[10px] font-medium text-center max-w-[50px] leading-tight">{loc.name}</span>
-                        <span className="text-[8px] text-muted-foreground">{loc.distance}</span>
-                      </button>
-                    );
-                  })}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                  <Loader className="h-6 w-6 text-primary animate-spin" />
                 </div>
-              </div>
+              )}
 
               <Button
                 size="icon"
@@ -150,13 +176,45 @@ export function InteractiveMap({
                 <Locate className="h-4 w-4" />
               </Button>
 
-              <div className="absolute top-2 left-2 flex items-center gap-2 bg-background/95 backdrop-blur rounded-lg px-2.5 py-1.5 border border-primary/20">
-                <div className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-[11px] font-semibold text-foreground" data-testid="text-map-current-location">
-                  {currentLocation.split(",")[0]}
-                </span>
-              </div>
+              {selectedLocation && (
+                <div className="absolute top-2 left-2 bg-background/95 backdrop-blur rounded-lg px-3 py-2 border border-primary/20 max-w-xs">
+                  <p className="text-sm font-semibold text-foreground" data-testid="text-map-current-location">
+                    {selectedLocation.name}
+                  </p>
+                  {selectedLocation.address && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedLocation.address}
+                    </p>
+                  )}
+                  {selectedLocation.phone && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedLocation.phone}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
+
+            {displayedLocations.length > 0 && (
+              <div className="space-y-1 max-h-40 overflow-y-auto">
+                <p className="text-xs font-medium text-muted-foreground px-2">
+                  {searchQuery.length > 0 ? "Search Results" : "Nearby Locations"}
+                </p>
+                {displayedLocations.map((location: Location) => (
+                  <button
+                    key={location.id}
+                    onClick={() => handleNavigate(location)}
+                    className="w-full text-left px-2 py-1.5 rounded-md hover-elevate active-elevate-2"
+                    data-testid={`button-location-${location.id}`}
+                  >
+                    <p className="text-sm font-medium">{location.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {location.type} • {location.address || "No address"}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
