@@ -7,6 +7,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Users, ChevronDown, Shield, CheckCircle } from "lucide-react";
 import { useState } from "react";
@@ -36,114 +44,150 @@ export function ConnectSection({ clubs }: ConnectSectionProps) {
   );
   const [loadingClub, setLoadingClub] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedClub, setSelectedClub] = useState<Club | null>(null);
 
   const handleClubClick = (clubId: string) => {
     setLocation(`/club?id=${clubId}`);
   };
 
-  const handleJoin = async (club: Club) => {
-    setLoadingClub(club.id);
+  const handleJoinClick = (club: Club) => {
+    setSelectedClub(club);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmJoin = async () => {
+    if (!selectedClub) return;
+    
+    setLoadingClub(selectedClub.id);
     
     await new Promise((resolve) => setTimeout(resolve, 500));
     
     setJoinedClubs((prev) => {
       const next = new Set(prev);
-      if (next.has(club.id)) {
-        next.delete(club.id);
+      if (next.has(selectedClub.id)) {
+        next.delete(selectedClub.id);
         toast({
           title: "Left Club",
-          description: `You have left ${club.name}`,
+          description: `You have left ${selectedClub.name}`,
         });
       } else {
-        next.add(club.id);
+        next.add(selectedClub.id);
         toast({
           title: "Joined Club",
-          description: `Welcome to ${club.name}!`,
+          description: `Welcome to ${selectedClub.name}!`,
         });
       }
       return next;
     });
     
     setLoadingClub(null);
+    setConfirmDialogOpen(false);
   };
 
   return (
-    <Card>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3">
-          <CollapsibleTrigger className="flex items-center justify-between w-full">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Connect
-            </CardTitle>
-            <ChevronDown
-              className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-            />
-          </CollapsibleTrigger>
-          <p className="text-xs text-muted-foreground text-left">
-            Join official clubs created by authorized members
-          </p>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent className="pt-0">
-            <div className="space-y-2 max-h-[220px] overflow-y-auto">
-              {clubs.map((club) => {
-                const isJoined = joinedClubs.has(club.id);
-                const isLoading = loadingClub === club.id;
+    <>
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent data-testid="dialog-club-confirm">
+          <DialogHeader>
+            <DialogTitle>Confirm Action</DialogTitle>
+            <DialogDescription>
+              {selectedClub && joinedClubs.has(selectedClub.id)
+                ? `Are you sure you want to leave ${selectedClub.name}?`
+                : `Are you sure you want to join ${selectedClub?.name}?`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDialogOpen(false)} data-testid="button-cancel-connect">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmJoin} data-testid="button-confirm-connect">
+              {selectedClub && joinedClubs.has(selectedClub.id) ? "Leave" : "Join"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-                return (
-                  <div
-                    key={club.id}
-                    className="flex items-center gap-3 p-2 rounded-md border hover-elevate cursor-pointer"
-                    onClick={() => handleClubClick(club.id)}
-                    data-testid={`card-club-${club.id}`}
-                  >
-                    <Avatar className="h-9 w-9 flex-shrink-0">
-                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                        {club.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-medium truncate" data-testid={`text-club-name-${club.id}`}>
-                          {club.name}
-                        </p>
-                        {club.isOfficial && (
-                          <Shield className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{club.members} members</span>
-                        <span>•</span>
-                        <span>by {club.admin}</span>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant={isJoined ? "secondary" : "default"}
-                      disabled={isLoading}
-                      onClick={() => handleJoin(club)}
-                      data-testid={`button-join-club-${club.id}`}
-                      className="flex-shrink-0"
+      <Card>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CardHeader className="pb-3">
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Connect
+              </CardTitle>
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+              />
+            </CollapsibleTrigger>
+            <p className="text-xs text-muted-foreground text-left">
+              Join official clubs created by authorized members
+            </p>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <div className="space-y-2 max-h-[220px] overflow-y-auto">
+                {clubs.map((club) => {
+                  const isJoined = joinedClubs.has(club.id);
+                  const isLoading = loadingClub === club.id;
+
+                  return (
+                    <div
+                      key={club.id}
+                      className="flex items-center gap-3 p-2 rounded-md border hover-elevate cursor-pointer"
+                      onClick={() => handleClubClick(club.id)}
+                      data-testid={`card-club-${club.id}`}
                     >
-                      {isLoading ? (
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      ) : isJoined ? (
-                        <>
-                          <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                          Joined
-                        </>
-                      ) : (
-                        "Join"
-                      )}
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+                      <Avatar className="h-9 w-9 flex-shrink-0">
+                        <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                          {club.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-medium truncate" data-testid={`text-club-name-${club.id}`}>
+                            {club.name}
+                          </p>
+                          {club.isOfficial && (
+                            <Shield className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{club.members} members</span>
+                          <span>•</span>
+                          <span>by {club.admin}</span>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={isJoined ? "secondary" : "default"}
+                        disabled={isLoading}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleJoinClick(club);
+                        }}
+                        data-testid={`button-join-club-${club.id}`}
+                        className="flex-shrink-0"
+                      >
+                        {isLoading ? (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ) : isJoined ? (
+                          <>
+                            <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                            Joined
+                          </>
+                        ) : (
+                          "Join"
+                        )}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+    </>
   );
 }
