@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { LoginModal } from "@/components/LoginModal";
 import Home from "@/pages/Home";
 import ClubDetail from "@/pages/ClubDetail";
+import EventDetail from "@/pages/EventDetail";
 import NotFound from "@/pages/not-found";
 import { useState, useEffect } from "react";
 
@@ -15,6 +16,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/club" component={ClubDetail} />
+      <Route path="/event" component={EventDetail} />
       <Route component={NotFound} />
     </Switch>
   );

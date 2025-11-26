@@ -215,7 +215,7 @@ export class MemStorage implements IStorage {
     return this.locations.get(id);
   }
 
-  async createLocation(insertLocation: InsertLocation): Promise<Location> {
+  async createLocation(insertLocation: any): Promise<Location> {
     const id = randomUUID();
     const location: Location = { ...insertLocation, id } as Location;
     this.locations.set(id, location);
@@ -224,7 +224,7 @@ export class MemStorage implements IStorage {
 
   async updateLocation(
     id: string,
-    updates: Partial<InsertLocation>,
+    updates: Partial<any>,
   ): Promise<Location | undefined> {
     const location = this.locations.get(id);
     if (!location) return undefined;
@@ -251,7 +251,7 @@ export class MemStorage implements IStorage {
     return Array.from(this.announcements.values());
   }
 
-  async createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement> {
+  async createAnnouncement(announcement: any): Promise<Announcement> {
     const id = randomUUID();
     const newAnnouncement: Announcement = { ...announcement, id } as Announcement;
     this.announcements.set(id, newAnnouncement);
@@ -267,7 +267,7 @@ export class MemStorage implements IStorage {
     return this.clubs.get(id);
   }
 
-  async createClub(club: InsertClub): Promise<Club> {
+  async createClub(club: any): Promise<Club> {
     const id = randomUUID();
     const newClub: Club = { ...club, id } as Club;
     this.clubs.set(id, newClub);

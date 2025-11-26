@@ -9,6 +9,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Clock, ChevronDown, Ticket, CheckCircle } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 type Event = {
   id: string;
@@ -27,11 +28,16 @@ type CompactEventsListProps = {
 
 export function CompactEventsList({ events }: CompactEventsListProps) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [registeredEvents, setRegisteredEvents] = useState<Set<string>>(
     new Set(events.filter((e) => e.registered).map((e) => e.id))
   );
   const [loadingEvent, setLoadingEvent] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
+
+  const handleEventClick = (eventId: string) => {
+    setLocation(`/event?id=${eventId}`);
+  };
 
   const handleRegister = async (event: Event) => {
     setLoadingEvent(event.id);
@@ -83,7 +89,9 @@ export function CompactEventsList({ events }: CompactEventsListProps) {
                 return (
                   <div
                     key={event.id}
-                    className="flex items-center gap-3 p-2 rounded-md border hover-elevate"
+                    className="flex items-center gap-3 p-2 rounded-md border hover-elevate cursor-pointer"
+                    onClick={() => handleEventClick(event.id)}
+                    data-testid={`card-event-${event.id}`}
                   >
                     <div className="flex-shrink-0 w-10 h-10 rounded-md bg-event-accent flex flex-col items-center justify-center text-event-accent-foreground">
                       <p className="text-sm font-bold leading-none">
