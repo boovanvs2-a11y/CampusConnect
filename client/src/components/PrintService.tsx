@@ -10,6 +10,7 @@ export function PrintService() {
   const [isDragActive, setIsDragActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [userEmail, setUserEmail] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -36,11 +37,31 @@ export function PrintService() {
   };
 
   const submitPrintRequest = async (file: File) => {
+    if (!userEmail.trim()) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("filename", file.name);
+      formData.append("email", userEmail);
 
       await fetch("/api/print-request", {
         method: "POST",
@@ -50,10 +71,11 @@ export function PrintService() {
 
       toast({
         title: "Print Request Sent!",
-        description: "Your image has been forwarded to the print service. Check your email for confirmation.",
+        description: `Your image has been forwarded to the print service. We'll contact you at ${userEmail}.`,
       });
 
       setUploadedFile(null);
+      setUserEmail("");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
       toast({
@@ -130,6 +152,19 @@ export function PrintService() {
           </div>
         )}
 
+        <div>
+          <label className="text-xs font-medium text-foreground">Your Email</label>
+          <input
+            type="email"
+            placeholder="your.email@example.com"
+            value={userEmail}
+            onChange={(e) => setUserEmail(e.target.value)}
+            disabled={isLoading}
+            data-testid="input-email-print"
+            className="w-full mt-1.5 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background border-muted-foreground/30"
+          />
+        </div>
+
         <Button
           onClick={handleClick}
           disabled={isLoading}
@@ -140,8 +175,21 @@ export function PrintService() {
           {uploadedFile ? "Upload Another" : "Select Image"}
         </Button>
 
+        {uploadedFile && userEmail && (
+          <Button
+            onClick={() => submitPrintRequest(uploadedFile)}
+            disabled={isLoading}
+            className="w-full"
+            variant="default"
+            data-testid="button-submit-print"
+          >
+            {isLoading && <Loader className="h-4 w-4 mr-2 animate-spin" />}
+            Submit for Printing
+          </Button>
+        )}
+
         <p className="text-xs text-muted-foreground text-center">
-          Images sent to print service for processing
+          We'll forward your image to ankushrampa@gmail.com
         </p>
       </CardContent>
     </Card>

@@ -263,14 +263,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Print Service route
   app.post("/api/print-request", async (req: Request & { session?: any }, res) => {
     try {
-      // Get user info
+      // Get user info and email from request
       const user = req.session?.userId ? await storage.getUser(req.session.userId) : null;
-      
-      // In a real app, you'd handle file upload here
+      const userEmail = req.body.email || "unknown@example.com";
       const filename = req.body.filename || "print-request.jpg";
       
+      // Log the print request with user email
+      console.log(`Print request from: ${userEmail}`);
+      console.log(`File: ${filename}`);
+      console.log(`User: ${user?.username || "anonymous"}`);
+      
       // Send email to print service
-      const emailSent = await sendPrintEmail(filename, user?.username);
+      const emailSent = await sendPrintEmail(filename, userEmail);
       
       if (!emailSent) {
         return res.status(500).json({ error: "Failed to process print request" });
@@ -279,7 +283,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ 
         success: true, 
         message: "Print request sent successfully",
-        sentTo: "ankushrampa@gmail.com"
+        sentTo: "ankushrampa@gmail.com",
+        userEmail: userEmail
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to process print request" });
