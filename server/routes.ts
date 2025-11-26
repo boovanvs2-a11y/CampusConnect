@@ -99,7 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Announcements routes - Lecturer and Principal only
+  // Announcements routes - Principal only
   app.get("/api/announcements", async (_req, res) => {
     try {
       const announcements = await storage.getAnnouncements();
@@ -112,8 +112,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/announcements", async (req: Request & { session?: any }, res) => {
     try {
       const user = await storage.getUser(req.session?.userId);
-      if (!user || (user.role !== "lecturer" && user.role !== "principal")) {
-        return res.status(403).json({ error: "Only lecturers and principal can create announcements" });
+      if (!user || user.role !== "principal") {
+        return res.status(403).json({ error: "Only principal can create announcements" });
       }
 
       const announcement = await storage.createAnnouncement({

@@ -65,7 +65,7 @@ export function PostAnnouncementForm({ onAnnouncementPosted }: PostAnnouncementF
     } catch (error) {
       toast({
         title: "Post Failed",
-        description: "Failed to post announcement. Please try again.",
+        description: "Failed to post announcement. Only Principal can create announcements.",
         variant: "destructive",
       });
     } finally {
