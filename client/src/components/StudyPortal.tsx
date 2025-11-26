@@ -7,8 +7,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Users, Clock, FileText, ExternalLink, GraduationCap } from "lucide-react";
+import { BookOpen, Users, Clock, FileText, ExternalLink, GraduationCap, Mail, Phone } from "lucide-react";
+import { useState } from "react";
 
 type Note = {
   id: string;
@@ -23,6 +31,7 @@ type Faculty = {
   department: string;
   status: "available" | "busy" | "offline";
   email: string;
+  phone: string;
 };
 
 type Schedule = {
@@ -45,6 +54,7 @@ const statusConfig = {
 
 export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
   const { toast } = useToast();
+  const [selectedFaculty, setSelectedFaculty] = useState<Faculty | null>(null);
   
   const notesBySubject = notes.reduce((acc, note) => {
     if (!acc[note.subject]) acc[note.subject] = [];
@@ -63,13 +73,14 @@ export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
     if (member.status === "offline") {
       toast({
         title: "Faculty Offline",
-        description: `${member.name} is currently offline. Try emailing them.`,
+        description: `${member.name} is currently offline. Try emailing or calling.`,
         variant: "destructive",
       });
     } else {
+      setSelectedFaculty(member);
       toast({
-        title: "Contacting Faculty",
-        description: `Opening chat with ${member.name}...`,
+        title: "Faculty Details",
+        description: `Viewing ${member.name}'s contact information`,
       });
     }
   };
@@ -83,113 +94,154 @@ export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
   };
 
   return (
-    <Card className="backdrop-blur-sm bg-card/90">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-primary" />
-          Study Portal
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="rounded-md border bg-primary/5 p-3">
-          <div className="flex items-start gap-2">
-            <Clock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground">Next Class</p>
-              <p className="text-sm font-semibold truncate" data-testid="text-next-class">
-                {nextClass.course}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {nextClass.time} • {nextClass.location}
-              </p>
+    <>
+      <Card className="backdrop-blur-sm bg-card/90">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Study Portal
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-md border bg-primary/5 p-3">
+            <div className="flex items-start gap-2">
+              <Clock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">Next Class</p>
+                <p className="text-sm font-semibold truncate" data-testid="text-next-class">
+                  {nextClass.course}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {nextClass.time} • {nextClass.location}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-2 h-10"
-          onClick={handleOpenERP}
-          data-testid="link-erp"
-        >
-          <GraduationCap className="h-4 w-4 text-primary" />
-          <span className="flex-1 text-left">ERP Portal</span>
-          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-        </Button>
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2 h-10"
+            onClick={handleOpenERP}
+            data-testid="link-erp"
+          >
+            <GraduationCap className="h-4 w-4 text-primary" />
+            <span className="flex-1 text-left">ERP Portal</span>
+            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
 
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="notes" className="border-b-0">
-            <AccordionTrigger className="hover:no-underline py-2" data-testid="button-notes-accordion">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                <span className="text-sm">My Notes</span>
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  {notes.length}
-                </Badge>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-1 max-h-[180px] overflow-y-auto">
-                {Object.entries(notesBySubject).map(([subject, subjectNotes]) => (
-                  <div key={subject} className="space-y-0.5">
-                    <p className="text-xs font-medium text-muted-foreground px-2 py-1">
-                      {subject}
-                    </p>
-                    {subjectNotes.map((note) => (
-                      <button
-                        key={note.id}
-                        className="w-full text-left px-2 py-1.5 rounded-md text-sm hover-elevate active-elevate-2"
-                        onClick={() => handleOpenNote(note.id, note.title)}
-                        data-testid={`button-note-${note.id}`}
-                      >
-                        <p className="text-sm truncate">{note.title}</p>
-                        <p className="text-xs text-muted-foreground">{note.date}</p>
-                      </button>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="faculty" className="border-b-0">
-            <AccordionTrigger className="hover:no-underline py-2" data-testid="button-faculty-accordion">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span className="text-sm">Faculty</span>
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  {faculty.filter((f) => f.status === "available").length} online
-                </Badge>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-0.5 max-h-[150px] overflow-y-auto">
-                {faculty.map((member) => (
-                  <button
-                    key={member.id}
-                    className="w-full text-left px-2 py-1.5 rounded-md hover-elevate active-elevate-2"
-                    onClick={() => handleContactFaculty(member)}
-                    data-testid={`button-faculty-${member.id}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-2 w-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: statusConfig[member.status].color }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">{member.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {member.department}
-                        </p>
-                      </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="notes" className="border-b-0">
+              <AccordionTrigger className="hover:no-underline py-2" data-testid="button-notes-accordion">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span className="text-sm">My Notes</span>
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {notes.length}
+                  </Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-1 max-h-[180px] overflow-y-auto">
+                  {Object.entries(notesBySubject).map(([subject, subjectNotes]) => (
+                    <div key={subject} className="space-y-0.5">
+                      <p className="text-xs font-medium text-muted-foreground px-2 py-1">
+                        {subject}
+                      </p>
+                      {subjectNotes.map((note) => (
+                        <button
+                          key={note.id}
+                          className="w-full text-left px-2 py-1.5 rounded-md text-sm hover-elevate active-elevate-2"
+                          onClick={() => handleOpenNote(note.id, note.title)}
+                          data-testid={`button-note-${note.id}`}
+                        >
+                          <p className="text-sm truncate">{note.title}</p>
+                          <p className="text-xs text-muted-foreground">{note.date}</p>
+                        </button>
+                      ))}
                     </div>
-                  </button>
-                ))}
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="faculty" className="border-b-0">
+              <AccordionTrigger className="hover:no-underline py-2" data-testid="button-faculty-accordion">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span className="text-sm">Faculty</span>
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {faculty.filter((f) => f.status === "available").length} online
+                  </Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-0.5 max-h-[150px] overflow-y-auto">
+                  {faculty.map((member) => (
+                    <button
+                      key={member.id}
+                      className="w-full text-left px-2 py-1.5 rounded-md hover-elevate active-elevate-2"
+                      onClick={() => handleContactFaculty(member)}
+                      data-testid={`button-faculty-${member.id}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="h-2 w-2 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: statusConfig[member.status].color }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm truncate">{member.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {member.department}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      {selectedFaculty && (
+        <Dialog open={!!selectedFaculty} onOpenChange={() => setSelectedFaculty(null)}>
+          <DialogContent data-testid="dialog-faculty-details">
+            <DialogHeader>
+              <DialogTitle>{selectedFaculty.name}</DialogTitle>
+              <DialogDescription>
+                {selectedFaculty.department}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm">{selectedFaculty.email}</p>
+                </div>
               </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </CardContent>
-    </Card>
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-sm">{selectedFaculty.phone}</p>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" className="flex-1" onClick={() => window.location.href = `mailto:${selectedFaculty.email}`} data-testid="button-email-faculty">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => window.location.href = `tel:${selectedFaculty.phone}`} data-testid="button-call-faculty">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }

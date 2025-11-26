@@ -1,0 +1,103 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { AlertCircle, ChevronDown } from "lucide-react";
+import { useState } from "react";
+
+type Announcement = {
+  id: string;
+  title: string;
+  content: string;
+  date: string;
+  category: "holiday" | "notice" | "maintenance" | "event";
+  author: string;
+  important: boolean;
+};
+
+type AnnouncementsSectionProps = {
+  announcements: Announcement[];
+};
+
+const categoryConfig = {
+  holiday: { bg: "bg-rose-500/10", text: "text-rose-700 dark:text-rose-400", label: "Holiday" },
+  notice: { bg: "bg-blue-500/10", text: "text-blue-700 dark:text-blue-400", label: "Notice" },
+  maintenance: { bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400", label: "Maintenance" },
+  event: { bg: "bg-green-500/10", text: "text-green-700 dark:text-green-400", label: "Event" },
+};
+
+export function AnnouncementsSection({ announcements }: AnnouncementsSectionProps) {
+  const [isOpen, setIsOpen] = useState(true);
+  const importantAnnouncements = announcements.filter((a) => a.important);
+  const regularAnnouncements = announcements.filter((a) => !a.important);
+
+  return (
+    <Card>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="pb-3">
+          <CollapsibleTrigger className="flex items-center justify-between w-full">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-announcement-accent" />
+              Announcements
+            </CardTitle>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
+          </CollapsibleTrigger>
+          <p className="text-xs text-muted-foreground text-left">
+            {importantAnnouncements.length} important updates
+          </p>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="pt-0 space-y-2">
+            <div className="max-h-[280px] overflow-y-auto space-y-2">
+              {importantAnnouncements.map((announcement) => {
+                const config = categoryConfig[announcement.category];
+                return (
+                  <div
+                    key={announcement.id}
+                    className={`rounded-md border-l-4 border-announcement-accent p-2.5 ${config.bg}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <p className="text-sm font-semibold truncate">{announcement.title}</p>
+                          <Badge className="text-[10px] h-4 px-1">{config.label}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{announcement.content}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {announcement.author} • {announcement.date}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {regularAnnouncements.length > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Other Updates</p>
+                  {regularAnnouncements.map((announcement) => {
+                    const config = categoryConfig[announcement.category];
+                    return (
+                      <div
+                        key={announcement.id}
+                        className={`rounded-md p-2 ${config.bg} mb-1.5`}
+                      >
+                        <p className="text-xs font-medium">{announcement.title}</p>
+                        <p className="text-xs text-muted-foreground">{announcement.content}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}

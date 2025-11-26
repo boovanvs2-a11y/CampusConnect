@@ -1,4 +1,5 @@
 import { StudyPortal } from "@/components/StudyPortal";
+import { AnnouncementsSection } from "@/components/AnnouncementsSection";
 import { ClubsCarousel } from "@/components/ClubsCarousel";
 import { ConnectSection } from "@/components/ConnectSection";
 import { DiscussSection } from "@/components/DiscussSection";
@@ -18,10 +19,10 @@ export default function Home() {
   ];
 
   const mockFaculty = [
-    { id: "1", name: "Dr. Sarah Johnson", department: "Computer Science", status: "available" as const, email: "sjohnson@rnsit.ac.in" },
-    { id: "2", name: "Prof. Michael Chen", department: "Mathematics", status: "busy" as const, email: "mchen@rnsit.ac.in" },
-    { id: "3", name: "Dr. Emily Rodriguez", department: "Physics", status: "available" as const, email: "erodriguez@rnsit.ac.in" },
-    { id: "4", name: "Prof. David Kim", department: "Engineering", status: "offline" as const, email: "dkim@rnsit.ac.in" },
+    { id: "1", name: "Dr. Sarah Johnson", department: "Computer Science", status: "available" as const, email: "sjohnson@rnsit.ac.in", phone: "+91-9876543210" },
+    { id: "2", name: "Prof. Michael Chen", department: "Mathematics", status: "busy" as const, email: "mchen@rnsit.ac.in", phone: "+91-9876543211" },
+    { id: "3", name: "Dr. Emily Rodriguez", department: "Physics", status: "available" as const, email: "erodriguez@rnsit.ac.in", phone: "+91-9876543212" },
+    { id: "4", name: "Prof. David Kim", department: "Engineering", status: "offline" as const, email: "dkim@rnsit.ac.in", phone: "+91-9876543213" },
   ];
 
   const mockNextClass = {
@@ -30,11 +31,18 @@ export default function Home() {
     location: "Block A, Room 305",
   };
 
+  const mockAnnouncements = [
+    { id: "1", title: "Winter Break", content: "Campus will be closed from Dec 20 - Jan 5", date: "Today", category: "holiday" as const, author: "Principal", important: true },
+    { id: "2", title: "Maintenance Work", content: "WiFi will be down on Dec 18, 9 PM - 12 AM", date: "Yesterday", category: "maintenance" as const, author: "IT Department", important: true },
+    { id: "3", title: "Sports Day", content: "Inter-class sports competition on Dec 22", date: "2 days ago", category: "event" as const, author: "Sports Committee", important: false },
+    { id: "4", title: "Library Notice", content: "New study materials added to central library", date: "3 days ago", category: "notice" as const, author: "Librarian", important: false },
+  ];
+
   const mockClubs = [
-    { id: "1", name: "Tech Innovation", description: "Build projects, attend hackathons, collaborate with tech enthusiasts.", members: 234, category: "Technology", banner: techClubBanner, joined: false },
-    { id: "2", name: "Campus Athletics", description: "Sports, fitness activities, and competitive tournaments.", members: 512, category: "Sports", banner: sportsClubBanner, joined: true },
-    { id: "3", name: "Debate Society", description: "Sharpen critical thinking and public speaking skills.", members: 156, category: "Academic", joined: false },
-    { id: "4", name: "Photography Club", description: "Capture moments and showcase your work in exhibitions.", members: 189, category: "Arts", joined: false },
+    { id: "1", name: "Tech Innovation", description: "Build projects, attend hackathons.", members: 234, category: "Technology", banner: techClubBanner },
+    { id: "2", name: "Campus Athletics", description: "Sports and fitness activities.", members: 512, category: "Sports", banner: sportsClubBanner },
+    { id: "3", name: "Debate Society", description: "Critical thinking and public speaking.", members: 156, category: "Academic" },
+    { id: "4", name: "Photography Club", description: "Capture moments and exhibitions.", members: 189, category: "Arts" },
   ];
 
   const mockConnectClubs = [
@@ -88,6 +96,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-3 space-y-4">
+            <AnnouncementsSection announcements={mockAnnouncements} />
             <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={mockNextClass} />
           </div>
 
