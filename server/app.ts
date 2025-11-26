@@ -7,6 +7,8 @@ import express, {
   NextFunction,
 } from "express";
 
+import session from "express-session";
+import MemoryStore from "memorystore";
 import { registerRoutes } from "./routes";
 
 export function log(message: string, source = "express") {
@@ -27,6 +29,23 @@ declare module 'http' {
     rawBody: unknown
   }
 }
+
+// Session middleware
+const SessionStore = MemoryStore(session);
+app.use(
+  session({
+    store: new SessionStore({ checkPeriod: 86400000 }),
+    secret: process.env.SESSION_SECRET || "dev-secret-key-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    },
+  })
+);
+
 app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;
