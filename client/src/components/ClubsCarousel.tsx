@@ -82,51 +82,54 @@ export function ClubsCarousel({ clubs, userRole = "student" }: ClubsCarouselProp
                   <Plus className="h-3 w-3" />
                 </Button>
               </DialogTrigger>
-            <DialogContent data-testid="dialog-create-club">
-              <DialogHeader>
-                <DialogTitle>Create New Club</DialogTitle>
-                <DialogDescription>
-                  Only authorized users can create clubs. Fill in the club details below.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Club Name</label>
-                  <Input
-                    placeholder="e.g., Tech Innovation Club"
-                    value={clubName}
-                    onChange={(e) => setClubName(e.target.value)}
-                    data-testid="input-club-name"
-                  />
+              <DialogContent data-testid="dialog-create-club">
+                <DialogHeader>
+                  <DialogTitle>Create New Club</DialogTitle>
+                  <DialogDescription>
+                    Only authorized users can create clubs. Fill in the club details below.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Club Name</label>
+                    <Input
+                      placeholder="e.g., Tech Innovation Club"
+                      value={clubName}
+                      onChange={(e) => setClubName(e.target.value)}
+                      data-testid="input-club-name"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Category</label>
+                    <Input
+                      placeholder="e.g., Technology, Sports, Cultural"
+                      value={clubCategory}
+                      onChange={(e) => setClubCategory(e.target.value)}
+                      data-testid="input-club-category"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Description</label>
+                    <Input
+                      placeholder="Brief description of the club"
+                      value={clubDesc}
+                      onChange={(e) => setClubDesc(e.target.value)}
+                      data-testid="input-club-description"
+                    />
+                  </div>
+                  <Button onClick={handleCreateClub} className="w-full" data-testid="button-submit-club">
+                    Create Club
+                  </Button>
                 </div>
-                <div>
-                  <label className="text-sm font-medium">Category</label>
-                  <Input
-                    placeholder="e.g., Technology, Sports, Cultural"
-                    value={clubCategory}
-                    onChange={(e) => setClubCategory(e.target.value)}
-                    data-testid="input-club-category"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Description</label>
-                  <Input
-                    placeholder="Brief description of the club"
-                    value={clubDesc}
-                    onChange={(e) => setClubDesc(e.target.value)}
-                    data-testid="input-club-description"
-                  />
-                </div>
-                <Button onClick={handleCreateClub} className="w-full" data-testid="button-submit-club">
-                  Create Club
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground px-2 py-1 rounded-md bg-muted">
+              <Lock className="h-3 w-3" />
+              Only authorized members
+            </div>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          Only authorized members can create clubs
-        </p>
       </CardHeader>
     </Card>
   );
