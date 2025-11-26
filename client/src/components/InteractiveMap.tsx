@@ -12,9 +12,9 @@ import {
   Navigation,
   ChevronDown,
   MapPin,
-  ExternalLink,
+  X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Location } from "@shared/schema";
 
@@ -22,12 +22,23 @@ type InteractiveMapProps = {
   currentLocation: string;
 };
 
-export function InteractiveMap({
-  currentLocation,
-}: InteractiveMapProps) {
+declare global {
+  interface Window {
+    L?: any;
+  }
+}
+
+export function InteractiveMap({ currentLocation }: InteractiveMapProps) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(true);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [userLocation] = useState<[number, number]>([12.9716, 77.5946]);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<Map<string, any>>(new Map());
+  const routeLayerRef = useRef<any>(null);
+  const leafletLoadedRef = useRef(false);
 
   const { data: allLocations = [] } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
@@ -40,23 +51,150 @@ export function InteractiveMap({
 
   const displayedLocations = searchQuery.length > 0 ? searchResults : allLocations;
 
-  const openGoogleMaps = (location: Location) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}&destination_place_id=${location.name}`;
-    window.open(url, "_blank");
+  // Load leaflet from CDN and initialize map
+  useEffect(() => {
+    if (leafletLoadedRef.current || !mapRef.current) return;
+
+    const loadLeaflet = async () => {
+      // Load CSS
+      if (!document.getElementById("leaflet-css")) {
+        const link = document.createElement("link");
+        link.id = "leaflet-css";
+        link.rel = "stylesheet";
+        link.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+        document.head.appendChild(link);
+      }
+
+      // Load JS
+      if (!window.L) {
+        await new Promise((resolve) => {
+          const script = document.createElement("script");
+          script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+          script.onload = resolve;
+          document.head.appendChild(script);
+        });
+      }
+
+      const L = window.L;
+      if (!L || mapInstanceRef.current) return;
+
+      const map = L.map(mapRef.current).setView(userLocation, 16);
+      mapInstanceRef.current = map;
+      leafletLoadedRef.current = true;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Add user marker
+      const userIcon = L.divIcon({
+        html: '<div class="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500 text-white border-2 border-white shadow-lg" style="background: hsl(188, 97%, 35%); box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd" /></svg></div>',
+        iconSize: [32, 32],
+        className: "",
+      });
+      L.marker(userLocation, { icon: userIcon }).addTo(map);
+    };
+
+    loadLeaflet();
+  }, []);
+
+  // Add markers for locations
+  useEffect(() => {
+    if (!mapInstanceRef.current || !window.L || displayedLocations.length === 0) return;
+
+    const L = window.L;
+    const map = mapInstanceRef.current;
+
+    // Clear old markers
+    markersRef.current.forEach((marker: any) => marker.remove());
+    markersRef.current.clear();
+
+    // Add new markers
+    displayedLocations.forEach((location) => {
+      const getIcon = () => {
+        const iconMap: Record<string, string> = {
+          building: "🏢",
+          food: "🍽️",
+          library: "📚",
+          sports: "⚽",
+        };
+        return iconMap[location.type] || "📍";
+      };
+
+      const customIcon = L.divIcon({
+        html: `<div class="flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-cyan-500 shadow-lg text-xl cursor-pointer hover:scale-110 transition-transform" style="border-color: hsl(188, 97%, 35%); box-shadow: 0 2px 8px rgba(0,0,0,0.2);">${getIcon()}</div>`,
+        iconSize: [40, 40],
+        className: "",
+      });
+
+      const marker = L.marker([location.latitude, location.longitude], {
+        icon: customIcon,
+      })
+        .addTo(map)
+        .on("click", () => navigateToLocation(location));
+
+      markersRef.current.set(location.id, marker);
+    });
+  }, [displayedLocations]);
+
+  const navigateToLocation = (location: Location) => {
+    setSelectedLocation(location);
+    if (!mapInstanceRef.current || !window.L) return;
+
+    const L = window.L;
+    const map = mapInstanceRef.current;
+
+    // Clear previous route
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+      routeLayerRef.current = null;
+    }
+
+    // Draw route line
+    const routePoints: [number, number][] = [userLocation, [location.latitude, location.longitude]];
+    routeLayerRef.current = L.polyline(routePoints, {
+      color: "hsl(188, 97%, 35%)",
+      weight: 3,
+      opacity: 0.7,
+      dashArray: "5, 5",
+    }).addTo(map);
+
+    // Fit bounds
+    const group = L.featureGroup(routePoints.map((p: [number, number]) => L.marker(p)));
+    map.fitBounds(group.getBounds().pad(0.1));
+
+    // Calculate distance
+    const distance = getDistance(userLocation[0], userLocation[1], location.latitude, location.longitude);
     toast({
-      title: "Opening Google Maps",
-      description: `Navigate to ${location.name}`,
+      title: "Route to " + location.name,
+      description: `Distance: ${distance.toFixed(1)} km`,
     });
   };
 
-  const getLocationIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      building: "🏢",
-      food: "🍽️",
-      library: "📚",
-      sports: "⚽",
-    };
-    return icons[type] || "📍";
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const clearRoute = () => {
+    setSelectedLocation(null);
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+      routeLayerRef.current = null;
+    }
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView(userLocation, 16);
+    }
   };
 
   return (
@@ -86,7 +224,48 @@ export function InteractiveMap({
               />
             </div>
 
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div
+              ref={mapRef}
+              className="relative h-64 rounded-md overflow-hidden border-2 border-primary/20 bg-background"
+              data-testid="map-container"
+              style={{ minHeight: "16rem" }}
+            />
+
+            {selectedLocation && (
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold" data-testid="text-map-current-location">
+                      {selectedLocation.name}
+                    </p>
+                    {selectedLocation.address && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {selectedLocation.address}
+                      </p>
+                    )}
+                    {selectedLocation.phone && (
+                      <p className="text-xs text-muted-foreground">
+                        {selectedLocation.phone}
+                      </p>
+                    )}
+                    <p className="text-xs text-primary font-medium mt-1.5">
+                      {getDistance(userLocation[0], userLocation[1], selectedLocation.latitude, selectedLocation.longitude).toFixed(1)} km away
+                    </p>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 flex-shrink-0"
+                    onClick={clearRoute}
+                    data-testid="button-clear-route"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1 max-h-48 overflow-y-auto">
               {displayedLocations.length > 0 ? (
                 <>
                   <p className="text-xs font-medium text-muted-foreground px-2">
@@ -95,54 +274,31 @@ export function InteractiveMap({
                   {displayedLocations.map((location: Location) => (
                     <button
                       key={location.id}
-                      onClick={() => openGoogleMaps(location)}
-                      className="w-full text-left p-3 rounded-lg border border-primary/20 hover-elevate active-elevate-2 transition-all"
+                      onClick={() => navigateToLocation(location)}
+                      className={`w-full text-left p-2 rounded-lg hover-elevate active-elevate-2 transition-all ${
+                        selectedLocation?.id === location.id
+                          ? "bg-primary/10 border border-primary/30"
+                          : "border border-border"
+                      }`}
                       data-testid={`button-location-${location.id}`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="text-lg flex-shrink-0">
-                          {getLocationIcon(location.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{location.name}</p>
-                          {location.address && (
-                            <p className="text-xs text-muted-foreground truncate">
-                              {location.address}
-                            </p>
-                          )}
-                          {location.phone && (
-                            <p className="text-xs text-muted-foreground">{location.phone}</p>
-                          )}
-                          <div className="flex items-center gap-1 mt-1.5">
-                            <MapPin className="h-3 w-3 text-primary" />
-                            <span className="text-xs text-primary font-medium">
-                              Open in Google Maps
-                            </span>
-                            <ExternalLink className="h-3 w-3 text-primary ml-auto" />
-                          </div>
-                        </div>
-                      </div>
+                      <p className="text-sm font-medium truncate">{location.name}</p>
+                      {location.address && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {location.address}
+                        </p>
+                      )}
                     </button>
                   ))}
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <MapPin className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                  <p className="text-sm text-muted-foreground">
+                <div className="flex flex-col items-center justify-center py-4 text-center">
+                  <MapPin className="h-6 w-6 text-muted-foreground/50 mb-1" />
+                  <p className="text-xs text-muted-foreground">
                     {searchQuery.length > 0 ? "No locations found" : "Loading locations..."}
                   </p>
                 </div>
               )}
-            </div>
-
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20">
-              <Navigation className="h-4 w-4 text-primary flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate" data-testid="text-map-current-location">
-                  {currentLocation}
-                </p>
-                <p className="text-xs text-muted-foreground">Your current location</p>
-              </div>
             </div>
           </CardContent>
         </CollapsibleContent>
