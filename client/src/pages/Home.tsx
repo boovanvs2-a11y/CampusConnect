@@ -1,16 +1,16 @@
 import { StudyPortal } from "@/components/StudyPortal";
 import { ClubsCarousel } from "@/components/ClubsCarousel";
-import { EventsList } from "@/components/EventsList";
-import { NavigationMap } from "@/components/NavigationMap";
-import { ProjectShowcase } from "@/components/ProjectShowcase";
+import { ConnectSection } from "@/components/ConnectSection";
+import { DiscussSection } from "@/components/DiscussSection";
+import { SocializeSection } from "@/components/SocializeSection";
+import { CompactEventsList } from "@/components/CompactEventsList";
+import { InteractiveMap } from "@/components/InteractiveMap";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
 import sportsClubBanner from "@assets/generated_images/sports_club_banner_image.png";
-import aiProjectThumbnail from "@assets/generated_images/ai_project_thumbnail.png";
-import appDesignThumbnail from "@assets/generated_images/app_design_project_thumbnail.png";
-import roboticsThumbnail from "@assets/generated_images/robotics_project_thumbnail.png";
 
 export default function Home() {
+  // todo: remove mock data - Study Portal
   const mockNotes = [
     {
       id: "1",
@@ -81,6 +81,7 @@ export default function Home() {
     location: "Block A, Room 305",
   };
 
+  // todo: remove mock data - Clubs
   const mockClubs = [
     {
       id: "1",
@@ -131,18 +132,130 @@ export default function Home() {
     },
   ];
 
+  // todo: remove mock data - Connect (Fests)
+  const mockFests = [
+    {
+      id: "1",
+      name: "Tech Fest 2025",
+      date: "2025-12-15",
+      time: "9:00 AM",
+      spotsLeft: 45,
+      totalSpots: 200,
+      category: "Technology",
+      registered: false,
+    },
+    {
+      id: "2",
+      name: "Cultural Night",
+      date: "2025-12-20",
+      time: "6:00 PM",
+      spotsLeft: 12,
+      totalSpots: 100,
+      category: "Cultural",
+      registered: true,
+    },
+    {
+      id: "3",
+      name: "Sports Day",
+      date: "2025-12-22",
+      time: "8:00 AM",
+      spotsLeft: 156,
+      totalSpots: 300,
+      category: "Sports",
+      registered: false,
+    },
+  ];
+
+  // todo: remove mock data - Discuss
+  const mockDiscussions = [
+    {
+      id: "1",
+      type: "question" as const,
+      author: "Alex Chen",
+      content: "When is the deadline for the AI project submission?",
+      answers: 5,
+      votes: 12,
+      liked: false,
+    },
+    {
+      id: "2",
+      type: "poll" as const,
+      author: "Campus Council",
+      content: "What time should the library extend hours during exams?",
+      votes: 89,
+      pollOptions: [
+        { option: "Until 12 AM", votes: 45 },
+        { option: "Until 2 AM", votes: 32 },
+        { option: "24/7", votes: 12 },
+      ],
+      voted: false,
+      liked: true,
+    },
+    {
+      id: "3",
+      type: "question" as const,
+      author: "Maya Patel",
+      content: "Anyone know where the career fair registration desk is?",
+      answers: 3,
+      votes: 8,
+      liked: false,
+    },
+  ];
+
+  // todo: remove mock data - Socialize
+  const mockPosts = [
+    {
+      id: "1",
+      author: "Alex Chen",
+      authorInitials: "AC",
+      content:
+        "Just finished our hackathon project! Can't wait to present it tomorrow.",
+      image: techClubBanner,
+      likes: 42,
+      comments: 8,
+      timeAgo: "2h ago",
+      liked: false,
+      saved: false,
+    },
+    {
+      id: "2",
+      author: "Maya Patel",
+      authorInitials: "MP",
+      content:
+        "The campus sunset today was absolutely stunning. Loving the view from the library!",
+      likes: 128,
+      comments: 15,
+      timeAgo: "4h ago",
+      liked: true,
+      saved: true,
+    },
+    {
+      id: "3",
+      author: "Jordan Lee",
+      authorInitials: "JL",
+      content: "Great game today! Our team made it to the semifinals.",
+      image: sportsClubBanner,
+      likes: 89,
+      comments: 12,
+      timeAgo: "6h ago",
+      liked: false,
+      saved: false,
+    },
+  ];
+
+  // todo: remove mock data - Events
   const mockEvents = [
     {
       id: "1",
-      title: "Campus Tech Hackathon 2025",
+      title: "Campus Tech Hackathon",
       date: "2025-12-15",
       time: "9:00 AM - 6:00 PM",
-      location: "Innovation Center, Main Campus",
+      location: "Innovation Center",
       category: "Technology",
     },
     {
       id: "2",
-      title: "Annual Cultural Festival",
+      title: "Cultural Festival",
       date: "2025-12-20",
       time: "4:00 PM - 10:00 PM",
       location: "Open Air Theatre",
@@ -150,64 +263,29 @@ export default function Home() {
     },
     {
       id: "3",
-      title: "Guest Lecture: AI & Future of Work",
+      title: "AI Guest Lecture",
       date: "2025-12-18",
       time: "3:00 PM - 5:00 PM",
-      location: "Auditorium Block B",
+      location: "Auditorium B",
       category: "Academic",
     },
     {
       id: "4",
-      title: "Inter-College Sports Meet",
+      title: "Sports Meet",
       date: "2025-12-22",
-      time: "8:00 AM - 5:00 PM",
+      time: "8:00 AM",
       location: "Sports Complex",
       category: "Sports",
     },
   ];
 
-  const mockNearbyEvents = [
-    { name: "Tech Talk", distance: "200m" },
-    { name: "Career Fair", distance: "350m" },
-  ];
-
-  const mockProjects = [
-    {
-      id: "1",
-      title: "AI Campus Assistant Bot",
-      creator: "Alex Chen",
-      description:
-        "An intelligent chatbot that helps students navigate campus resources and answer common questions using natural language processing.",
-      thumbnail: aiProjectThumbnail,
-      likes: 142,
-      views: 1253,
-      category: "AI/ML",
-      liked: false,
-    },
-    {
-      id: "2",
-      title: "Campus Events Mobile App",
-      creator: "Maya Patel",
-      description:
-        "A beautifully designed mobile app for discovering and managing campus events with personalized recommendations.",
-      thumbnail: appDesignThumbnail,
-      likes: 98,
-      views: 876,
-      category: "Mobile",
-      liked: true,
-    },
-    {
-      id: "3",
-      title: "Autonomous Library Robot",
-      creator: "Jordan Lee",
-      description:
-        "A robotics project that autonomously organizes and retrieves books in the campus library using computer vision and path planning.",
-      thumbnail: roboticsThumbnail,
-      likes: 203,
-      views: 1842,
-      category: "Robotics",
-      liked: false,
-    },
+  // todo: remove mock data - Map locations
+  const mockLocations = [
+    { id: "1", name: "Central Library", type: "library" as const, distance: "150m" },
+    { id: "2", name: "Campus Canteen", type: "food" as const, distance: "200m" },
+    { id: "3", name: "Block A - CS Dept", type: "building" as const, distance: "300m" },
+    { id: "4", name: "Sports Complex", type: "sports" as const, distance: "450m" },
+    { id: "5", name: "Coffee House", type: "food" as const, distance: "180m" },
   ];
 
   return (
@@ -228,6 +306,7 @@ export default function Home() {
 
       <main className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column - Study Portal */}
           <div className="lg:col-span-3">
             <StudyPortal
               notes={mockNotes}
@@ -236,17 +315,21 @@ export default function Home() {
             />
           </div>
 
-          <div className="lg:col-span-6 space-y-6">
+          {/* Center Column - Clubs, Connect, Discuss */}
+          <div className="lg:col-span-5 space-y-6">
             <ClubsCarousel clubs={mockClubs} />
-            <EventsList events={mockEvents} />
-            <NavigationMap
-              currentLocation="Central Library, Block C"
-              nearbyEvents={mockNearbyEvents}
-            />
+            <ConnectSection fests={mockFests} />
+            <DiscussSection discussions={mockDiscussions} />
           </div>
 
-          <div className="lg:col-span-3">
-            <ProjectShowcase projects={mockProjects} />
+          {/* Right Column - Socialize, Events, Map */}
+          <div className="lg:col-span-4 space-y-6">
+            <SocializeSection posts={mockPosts} />
+            <CompactEventsList events={mockEvents} />
+            <InteractiveMap
+              currentLocation="Innovation Center, Block C"
+              nearbyLocations={mockLocations}
+            />
           </div>
         </div>
       </main>
