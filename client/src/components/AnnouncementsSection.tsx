@@ -45,25 +45,14 @@ export function AnnouncementsSection({ announcements, userRole }: AnnouncementsS
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3 flex items-center justify-between">
-          <CollapsibleTrigger className="flex-1">
-            <CardTitle className="text-lg flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between w-full">
+            <CollapsibleTrigger className="flex items-center gap-2 flex-1">
               <AlertCircle className="h-5 w-5 text-announcement-accent" />
-              Announcements
-            </CardTitle>
-          </CollapsibleTrigger>
-          <div className="flex items-center gap-1">
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                data-testid="button-toggle-announcements"
-              >
-                <ChevronDown
-                  className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-                />
-              </Button>
+              <CardTitle className="text-lg">Announcements</CardTitle>
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${isOpen ? "rotate-180" : ""}`}
+              />
             </CollapsibleTrigger>
             {isPrincipal && (
               <PostAnnouncementForm>
