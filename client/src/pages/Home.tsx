@@ -227,8 +227,14 @@ export default function Home() {
               <circle cx="10" cy="12" r="7" stroke="#a855f7" strokeWidth="1.5" fill="none" />
               {/* Right circle - Cyan */}
               <circle cx="22" cy="12" r="7" stroke="#06b6d4" strokeWidth="1.5" fill="none" />
-              {/* Intersection fill */}
-              <ellipse cx="16" cy="12" rx="4" ry="7" fill="#a855f7" opacity="0.3" />
+              {/* Intersection fill - Common area with pattern */}
+              <defs>
+                <pattern id="commonPattern" patternUnits="userSpaceOnUse" width="2" height="2">
+                  <line x1="0" y1="0" x2="2" y2="2" stroke="#a855f7" strokeWidth="0.5" opacity="0.8" />
+                </pattern>
+              </defs>
+              <ellipse cx="16" cy="12" rx="4" ry="7" fill="url(#commonPattern)" />
+              <ellipse cx="16" cy="12" rx="4" ry="7" fill="#7c3aed" opacity="0.5" />
             </svg>
             <h1 className="text-base sm:text-lg font-bold" data-testid="text-app-title">
               CampusConnect
