@@ -183,7 +183,7 @@ export default function Home() {
                   <CalendarSidebar />
                 </div>
               )}
-              <AnnouncementsSection announcements={announcements} />
+              <AnnouncementsSection announcements={announcements} userRole={user?.role} />
             </div>
             {user?.role === "principal" && <PrincipalPanel />}
             <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={mockNextClass} />

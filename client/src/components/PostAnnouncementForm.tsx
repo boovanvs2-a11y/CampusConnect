@@ -24,9 +24,10 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 
 type PostAnnouncementFormProps = {
   onAnnouncementPosted?: () => void;
+  children?: React.ReactNode;
 };
 
-export function PostAnnouncementForm({ onAnnouncementPosted }: PostAnnouncementFormProps) {
+export function PostAnnouncementForm({ onAnnouncementPosted, children }: PostAnnouncementFormProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -77,10 +78,12 @@ export function PostAnnouncementForm({ onAnnouncementPosted }: PostAnnouncementF
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full gap-2" data-testid="button-post-announcement">
-          <Plus className="h-4 w-4" />
-          Post Announcement
-        </Button>
+        {children || (
+          <Button variant="outline" className="w-full gap-2" data-testid="button-post-announcement">
+            <Plus className="h-4 w-4" />
+            Post Announcement
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent data-testid="dialog-post-announcement">
         <DialogHeader>

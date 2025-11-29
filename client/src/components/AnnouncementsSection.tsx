@@ -1,12 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { AlertCircle, ChevronDown } from "lucide-react";
+import { AlertCircle, ChevronDown, Plus } from "lucide-react";
 import { useState } from "react";
+import { PostAnnouncementForm } from "./PostAnnouncementForm";
 
 type Announcement = {
   id: string;
@@ -20,6 +22,7 @@ type Announcement = {
 
 type AnnouncementsSectionProps = {
   announcements: Announcement[];
+  userRole?: string;
 };
 
 const categoryConfig = {
@@ -29,10 +32,11 @@ const categoryConfig = {
   event: { bg: "bg-green-500/10", text: "text-green-700 dark:text-green-400", label: "Event" },
 };
 
-export function AnnouncementsSection({ announcements }: AnnouncementsSectionProps) {
+export function AnnouncementsSection({ announcements, userRole }: AnnouncementsSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
   const importantAnnouncements = announcements.filter((a) => a.important);
   const regularAnnouncements = announcements.filter((a) => !a.important);
+  const isPrincipal = userRole === "principal";
 
   return (
     <Card>
@@ -43,9 +47,24 @@ export function AnnouncementsSection({ announcements }: AnnouncementsSectionProp
               <AlertCircle className="h-5 w-5 text-announcement-accent" />
               Announcements
             </CardTitle>
-            <ChevronDown
-              className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-            />
+            <div className="flex items-center gap-2">
+              {isPrincipal && (
+                <PostAnnouncementForm>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    title="Add announcement"
+                    data-testid="button-add-announcement"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </PostAnnouncementForm>
+              )}
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+              />
+            </div>
           </CollapsibleTrigger>
           <p className="text-xs text-muted-foreground text-left">
             {importantAnnouncements.length} important updates
