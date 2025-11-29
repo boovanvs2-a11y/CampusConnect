@@ -25,11 +25,15 @@ type AnnouncementsSectionProps = {
   userRole?: string;
 };
 
-const categoryConfig = {
+const categoryConfig: Record<string, { bg: string; text: string; label: string }> = {
   holiday: { bg: "bg-rose-500/10", text: "text-rose-700 dark:text-rose-400", label: "Holiday" },
   notice: { bg: "bg-blue-500/10", text: "text-blue-700 dark:text-blue-400", label: "Notice" },
   maintenance: { bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400", label: "Maintenance" },
   event: { bg: "bg-green-500/10", text: "text-green-700 dark:text-green-400", label: "Event" },
+};
+
+const getConfig = (category: string) => {
+  return categoryConfig[category] || { bg: "bg-slate-500/10", text: "text-slate-700 dark:text-slate-400", label: "Announcement" };
 };
 
 export function AnnouncementsSection({ announcements, userRole }: AnnouncementsSectionProps) {
@@ -41,31 +45,33 @@ export function AnnouncementsSection({ announcements, userRole }: AnnouncementsS
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3">
-          <CollapsibleTrigger className="flex items-center justify-between w-full">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-announcement-accent" />
-              Announcements
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              {isPrincipal && (
-                <PostAnnouncementForm>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    title="Add announcement"
-                    data-testid="button-add-announcement"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </PostAnnouncementForm>
-              )}
+        <CardHeader className="pb-3 flex items-center justify-between gap-2">
+          <div className="flex-1">
+            <CollapsibleTrigger className="flex items-center gap-2 w-full">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-announcement-accent" />
+                Announcements
+              </CardTitle>
               <ChevronDown
-                className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+                className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${isOpen ? "rotate-180" : ""}`}
               />
-            </div>
-          </CollapsibleTrigger>
+            </CollapsibleTrigger>
+          </div>
+          {isPrincipal && (
+            <PostAnnouncementForm>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                title="Add announcement"
+                data-testid="button-add-announcement"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </PostAnnouncementForm>
+          )}
+        </CardHeader>
+        <CardHeader className="pt-0 pb-2">
           <p className="text-xs text-muted-foreground text-left">
             {importantAnnouncements.length} important updates
           </p>
@@ -74,7 +80,7 @@ export function AnnouncementsSection({ announcements, userRole }: AnnouncementsS
           <CardContent className="pt-0 space-y-2">
             <div className="max-h-[280px] overflow-y-auto space-y-2">
               {importantAnnouncements.map((announcement) => {
-                const config = categoryConfig[announcement.category];
+                const config = getConfig(announcement.category);
                 return (
                   <div
                     key={announcement.id}
@@ -100,7 +106,7 @@ export function AnnouncementsSection({ announcements, userRole }: AnnouncementsS
                 <div className="pt-2 border-t">
                   <p className="text-xs font-medium text-muted-foreground mb-2">Other Updates</p>
                   {regularAnnouncements.map((announcement) => {
-                    const config = categoryConfig[announcement.category];
+                    const config = getConfig(announcement.category);
                     return (
                       <div
                         key={announcement.id}
