@@ -371,6 +371,22 @@ export class MemStorage implements IStorage {
     this.notes.set(id, newNote);
     return newNote;
   }
+
+  async getWhatsappGroups(): Promise<WhatsappGroup[]> {
+    return Array.from(this.whatsappGroups.values());
+  }
+
+  async createWhatsappGroup(group: any): Promise<WhatsappGroup> {
+    const id = randomUUID();
+    const newGroup: WhatsappGroup = {
+      id,
+      groupName: group.groupName,
+      members: JSON.stringify(group.members),
+      createdAt: new Date().toISOString(),
+    } as WhatsappGroup;
+    this.whatsappGroups.set(id, newGroup);
+    return newGroup;
+  }
 }
 
 export const storage = new MemStorage();

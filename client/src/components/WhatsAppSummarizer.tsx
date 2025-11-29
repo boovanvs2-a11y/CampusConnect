@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Plus } from "lucide-react";
+import { MessageCircle, Plus, Loader } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 type GroupSummary = {
   id: string;
@@ -34,10 +35,10 @@ export function WhatsAppSummarizer() {
   const [isOpen, setIsOpen] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
-  const [memberName, setMemberName] = useState("");
-  const [memberSummary, setMemberSummary] = useState("");
-  const [members, setMembers] = useState<Array<{ name: string; summary: string }>>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [chatText, setChatText] = useState("");
+  const [analyzedMembers, setAnalyzedMembers] = useState<Array<{ name: string; summary: string }>>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const { data: groups = [] } = useQuery({
@@ -49,39 +50,63 @@ export function WhatsAppSummarizer() {
     }
   });
 
-  const handleAddMember = () => {
-    if (!memberName.trim() || !memberSummary.trim()) {
+  const handleAnalyzeChat = async () => {
+    if (!groupName.trim() || !chatText.trim()) {
       toast({
-        title: "Fill Fields",
-        description: "Enter member name and what they talk about",
-        variant: "destructive",
-      });
-      return;
-    }
-    setMembers([...members, { name: memberName, summary: memberSummary }]);
-    setMemberName("");
-    setMemberSummary("");
-  };
-
-  const handleRemoveMember = (idx: number) => {
-    setMembers(members.filter((_, i) => i !== idx));
-  };
-
-  const handleAddGroup = async () => {
-    if (!groupName.trim() || members.length === 0) {
-      toast({
-        title: "Complete Group Info",
-        description: "Enter group name and at least one member",
+        title: "Missing Info",
+        description: "Enter group name and paste chat text",
         variant: "destructive",
       });
       return;
     }
 
-    setIsSubmitting(true);
+    setIsAnalyzing(true);
+    try {
+      const result = await apiRequest("POST", "/api/whatsapp-groups/analyze", {
+        groupName,
+        chatText,
+      });
+
+      setAnalyzedMembers(result.members || []);
+      
+      if (result.members && result.members.length > 0) {
+        toast({
+          title: "Analysis Complete",
+          description: `Found ${result.members.length} members`,
+        });
+      } else {
+        toast({
+          title: "No members found",
+          description: "Try pasting a different chat or add members manually",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: "Could not analyze chat. Try pasting again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleSaveGroup = async () => {
+    if (analyzedMembers.length === 0) {
+      toast({
+        title: "No Members",
+        description: "Please analyze the chat first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
     try {
       await apiRequest("POST", "/api/whatsapp-groups", {
         groupName,
-        members,
+        members: analyzedMembers,
       });
 
       toast({
@@ -89,20 +114,25 @@ export function WhatsAppSummarizer() {
         description: "WhatsApp group saved successfully",
       });
 
+      queryClient.invalidateQueries({ queryKey: ['/api/whatsapp-groups'] });
+      
       setGroupName("");
-      setMembers([]);
-      setMemberName("");
-      setMemberSummary("");
+      setChatText("");
+      setAnalyzedMembers([]);
       setIsDialogOpen(false);
     } catch (error) {
       toast({
         title: "Failed",
-        description: "Could not add group",
+        description: "Could not save group",
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
+  };
+
+  const handleRemoveMember = (idx: number) => {
+    setAnalyzedMembers(analyzedMembers.filter((_, i) => i !== idx));
   };
 
   return (
@@ -119,11 +149,11 @@ export function WhatsAppSummarizer() {
             </CollapsibleTrigger>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-8">
+                <Button size="sm" variant="ghost" className="h-8" data-testid="button-add-whatsapp">
                   <Plus className="h-3 w-3" />
                 </Button>
               </DialogTrigger>
-              <DialogContent data-testid="dialog-add-whatsapp">
+              <DialogContent data-testid="dialog-add-whatsapp" className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Add WhatsApp Group</DialogTitle>
                 </DialogHeader>
@@ -138,61 +168,86 @@ export function WhatsAppSummarizer() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Add Members</label>
-                    <div className="space-y-2">
-                      <Input
-                        placeholder="Member name"
-                        value={memberName}
-                        onChange={(e) => setMemberName(e.target.value)}
-                        data-testid="input-member-name"
-                      />
-                      <Input
-                        placeholder="What they talk about (e.g., memes, assignments)"
-                        value={memberSummary}
-                        onChange={(e) => setMemberSummary(e.target.value)}
-                        data-testid="input-member-summary"
-                      />
+                  {analyzedMembers.length === 0 ? (
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Paste Chat Text</label>
+                        <Textarea
+                          placeholder="Paste your WhatsApp chat here..."
+                          value={chatText}
+                          onChange={(e) => setChatText(e.target.value)}
+                          className="min-h-32"
+                          data-testid="textarea-chat-text"
+                        />
+                      </div>
                       <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleAddMember}
+                        onClick={handleAnalyzeChat}
+                        disabled={isAnalyzing || !groupName.trim() || !chatText.trim()}
                         className="w-full"
-                        data-testid="button-add-member"
+                        data-testid="button-analyze-chat"
                       >
-                        Add Member
+                        {isAnalyzing ? (
+                          <>
+                            <Loader className="h-4 w-4 mr-2 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          "Analyze Chat"
+                        )}
                       </Button>
-                    </div>
-                  </div>
-
-                  {members.length > 0 && (
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {members.map((m, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                          <div className="text-xs">
-                            <p className="font-medium">{m.name}</p>
-                            <p className="text-muted-foreground">{m.summary}</p>
-                          </div>
-                          <button
-                            onClick={() => handleRemoveMember(idx)}
-                            className="text-destructive hover:text-destructive/80"
-                            data-testid={`button-remove-member-${idx}`}
-                          >
-                            ✕
-                          </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Found Members ({analyzedMembers.length})</p>
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                          {analyzedMembers.map((member, idx) => (
+                            <div key={idx} className="flex items-start justify-between p-2 bg-muted rounded-md gap-2">
+                              <div className="text-xs flex-1">
+                                <p className="font-medium text-foreground">{member.name}</p>
+                                <p className="text-muted-foreground text-xs">{member.summary}</p>
+                              </div>
+                              <button
+                                onClick={() => handleRemoveMember(idx)}
+                                className="text-destructive hover:text-destructive/80 flex-shrink-0"
+                                data-testid={`button-remove-member-${idx}`}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            setAnalyzedMembers([]);
+                            setChatText("");
+                          }}
+                          variant="outline"
+                          className="flex-1"
+                          data-testid="button-analyze-again"
+                        >
+                          Analyze Again
+                        </Button>
+                        <Button
+                          onClick={handleSaveGroup}
+                          disabled={isSaving}
+                          className="flex-1"
+                          data-testid="button-save-group"
+                        >
+                          {isSaving ? (
+                            <>
+                              <Loader className="h-4 w-4 mr-2 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            "Save Group"
+                          )}
+                        </Button>
+                      </div>
+                    </>
                   )}
-
-                  <Button
-                    onClick={handleAddGroup}
-                    disabled={isSubmitting || members.length === 0}
-                    className="w-full"
-                    data-testid="button-save-group"
-                  >
-                    Save Group
-                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -202,7 +257,7 @@ export function WhatsAppSummarizer() {
           <CardContent className="pt-0 space-y-3">
             {groups.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-4">
-                No groups yet. Click + to add a WhatsApp group.
+                No groups yet. Click + to paste a WhatsApp chat.
               </p>
             ) : (
               groups.map((group: GroupSummary) => (

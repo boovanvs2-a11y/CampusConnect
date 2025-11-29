@@ -20,6 +20,54 @@ const logPrintRequest = async (filename: string, userEmail?: string, fileSize?: 
   }
 };
 
+const extractMembersBasic = (chatText: string): Array<{ name: string; summary: string }> => {
+  // Basic extraction: find patterns like "Name: message" or timestamps with names
+  const members: { [key: string]: string[] } = {};
+  
+  // Match lines starting with a name (contains alphanumeric and spaces)
+  const lines = chatText.split('\n');
+  
+  for (const line of lines) {
+    // Skip empty lines and system messages
+    if (!line.trim() || line.includes('Messages and calls are encrypted')) continue;
+    
+    // Try to extract name from WhatsApp format: "Name: message" or "Name message"
+    const match = line.match(/^(?:\d{1,2}\/\d{1,2}\/\d{2,4},?\s*)?(?:\d{1,2}:\d{2}(?:\s*[AP]M)?\s*-?\s*)?([A-Z][a-zA-Z\s]+?)(?::|\s+)/);
+    
+    if (match && match[1]) {
+      const name = match[1].trim();
+      if (name.length > 1 && name.length < 50) {
+        if (!members[name]) {
+          members[name] = [];
+        }
+        members[name].push(line);
+      }
+    }
+  }
+  
+  // Convert to array with basic summaries
+  return Object.entries(members)
+    .map(([name, messages]) => {
+      // Simple keyword detection
+      let summary = "conversations";
+      const text = messages.join(' ').toLowerCase();
+      if (text.includes('assignment') || text.includes('homework') || text.includes('project')) {
+        summary = "assignments";
+      } else if (text.includes('haha') || text.includes('lol') || text.includes('😂') || text.includes('funny')) {
+        summary = "memes";
+      } else if (text.includes('test') || text.includes('exam') || text.includes('exam')) {
+        summary = "exams";
+      } else if (text.includes('meet') || text.includes('study') || text.includes('class')) {
+        summary = "study";
+      } else if (text.includes('thanks') || text.includes('help') || text.includes('question')) {
+        summary = "questions";
+      }
+      return { name, summary };
+    })
+    .filter((m) => m.name.length > 0)
+    .slice(0, 20); // Limit to 20 members
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/signup", async (req: Request & { session?: any }, res) => {
@@ -423,6 +471,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete location" });
+    }
+  });
+
+  // WhatsApp Groups routes
+  app.get("/api/whatsapp-groups", async (_req, res) => {
+    try {
+      const groups = await storage.getWhatsappGroups();
+      const formattedGroups = groups.map((g) => ({
+        id: g.id,
+        groupName: g.groupName,
+        members: typeof g.members === 'string' ? JSON.parse(g.members) : g.members,
+        createdAt: g.createdAt,
+      }));
+      res.json(formattedGroups);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch groups" });
+    }
+  });
+
+  app.post("/api/whatsapp-groups/analyze", async (req: Request & { session?: any }, res) => {
+    try {
+      const { groupName, chatText } = req.body;
+      if (!groupName || !chatText) {
+        return res.status(400).json({ error: "Group name and chat text required" });
+      }
+
+      let members: Array<{ name: string; summary: string }> = [];
+
+      // Try to use OpenAI if API key is available
+      if (process.env.OPENAI_API_KEY) {
+        try {
+          const OpenAI = require("openai").default;
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "system",
+                content: "Analyze the WhatsApp chat and extract all members with what they primarily talk about. Return JSON with array of {name, summary}.",
+              },
+              {
+                role: "user",
+                content: `Analyze this chat and identify members with 1-2 word summaries of their contributions:\n\n${chatText}\n\nReturn ONLY valid JSON: {"members": [{"name": "...", "summary": "..."}]}`,
+              },
+            ],
+            response_format: { type: "json_object" },
+            max_tokens: 1024,
+          });
+
+          const result = JSON.parse(response.choices[0].message.content);
+          members = result.members || [];
+        } catch (error) {
+          console.error("OpenAI analysis failed:", error);
+          // Fall back to basic parsing
+          members = extractMembersBasic(chatText);
+        }
+      } else {
+        // No API key - use basic extraction
+        members = extractMembersBasic(chatText);
+      }
+
+      res.json({ members });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to analyze chat" });
+    }
+  });
+
+  app.post("/api/whatsapp-groups", async (req: Request & { session?: any }, res) => {
+    try {
+      const { groupName, members } = req.body;
+      if (!groupName || !members || members.length === 0) {
+        return res.status(400).json({ error: "Group name and members required" });
+      }
+
+      const group = await storage.createWhatsappGroup({ groupName, members });
+      res.status(201).json({
+        id: group.id,
+        groupName: group.groupName,
+        members: typeof group.members === 'string' ? JSON.parse(group.members) : group.members,
+        createdAt: group.createdAt,
+      });
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create group" });
     }
   });
 
