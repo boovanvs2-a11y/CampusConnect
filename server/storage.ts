@@ -172,9 +172,15 @@ export class MemStorage implements IStorage {
   private initializeDefaultUsers() {
     const demoUsers: User[] = [
       {
-        id: "student-demo",
-        username: "1RN21CS001",
-        password: "student123",
+        id: "student-1",
+        username: "1RN25EC014-T",
+        password: "idk",
+        role: "student",
+      },
+      {
+        id: "student-2",
+        username: "1RN25EC208-T",
+        password: "idc",
         role: "student",
       },
       {
