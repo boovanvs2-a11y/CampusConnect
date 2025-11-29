@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PostAnnouncementForm } from "./PostAnnouncementForm";
 
 type PendingClub = {
@@ -61,6 +61,7 @@ export function PrincipalPanel() {
       });
 
       setPendingClubs(pendingClubs.filter((c) => c.id !== clubId));
+      queryClient.invalidateQueries({ queryKey: ['/api/clubs'] });
     } catch (error) {
       toast({
         title: "Approval Failed",
@@ -86,6 +87,7 @@ export function PrincipalPanel() {
       });
 
       setPendingClubs(pendingClubs.filter((c) => c.id !== clubId));
+      queryClient.invalidateQueries({ queryKey: ['/api/clubs'] });
     } catch (error) {
       toast({
         title: "Rejection Failed",
