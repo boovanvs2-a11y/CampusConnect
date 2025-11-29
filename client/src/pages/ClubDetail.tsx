@@ -42,37 +42,38 @@ export default function ClubDetail() {
       }
 
       try {
-        // For now, using mock data - in production, fetch from API
-        const mockClub: Club = {
-          id: clubId,
-          name: "Tech Innovation Club",
-          description:
-            "Building cutting-edge projects and attending hackathons together. We focus on AI, Web Development, and Mobile Apps.",
-          banner: "tech_club_banner.jpg",
-          category: "Technology",
-          creatorId: "student-demo",
-          status: "approved",
-          createdAt: new Date().toISOString(),
-        };
-
-        setClub(mockClub);
-        setEditedClub(mockClub);
-        setMembers([
-          { id: "1", name: "John Doe", role: "head", joinedAt: "2024-01-15" },
-          { id: "2", name: "Jane Smith", role: "moderator", joinedAt: "2024-02-20" },
-          { id: "3", name: "Bob Wilson", role: "member", joinedAt: "2024-03-10" },
-        ]);
-        setMessages([
-          "Welcome to Tech Innovation Club! 🚀",
-          "Next meeting: Saturday 2 PM",
-          "Anyone interested in hackathon?",
-        ]);
+        // Fetch actual club data from API
+        const res = await fetch(`/api/clubs?search=${clubId}`, {
+          credentials: "include",
+        });
+        
+        if (res.ok) {
+          const clubs = await res.json();
+          const foundClub = clubs.find((c: Club) => c.id === clubId);
+          
+          if (foundClub) {
+            setClub(foundClub);
+            setEditedClub(foundClub);
+            setMembers([
+              { id: "1", name: "Club Creator", role: "head", joinedAt: foundClub.createdAt },
+            ]);
+            setMessages([
+              `Welcome to ${foundClub.name}!`,
+              `Category: ${foundClub.category}`,
+            ]);
+          } else {
+            setClub(null);
+          }
+        } else {
+          setClub(null);
+        }
       } catch (error) {
         toast({
           title: "Error",
           description: "Failed to load club details",
           variant: "destructive",
         });
+        setClub(null);
       } finally {
         setIsLoading(false);
       }
