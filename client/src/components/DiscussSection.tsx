@@ -93,7 +93,7 @@ export function DiscussSection({ discussions }: DiscussSectionProps) {
           </p>
         </CardHeader>
         <CollapsibleContent>
-          <CardContent className="pt-0 space-y-3">
+          <CardContent className="pt-0 space-y-4">
             <div className="flex gap-2">
               <Input
                 placeholder="Ask a question..."
