@@ -101,7 +101,11 @@ export function ColorPicker() {
     document.documentElement.style.setProperty("--sidebar-primary", `${colorToApply.hue} ${colorToApply.saturation}% ${colorToApply.lightness}%`);
     document.documentElement.style.setProperty("--sidebar-ring", `${colorToApply.hue} ${colorToApply.saturation}% ${colorToApply.lightness}%`);
     document.documentElement.style.setProperty("--ring", `${colorToApply.hue} ${colorToApply.saturation}% ${colorToApply.lightness}%`);
+    
+    // Update all section accent colors to match the selected theme
     document.documentElement.style.setProperty("--announcement-accent", `${colorToApply.hue} ${colorToApply.saturation}% ${colorToApply.lightness}%`);
+    document.documentElement.style.setProperty("--discussion-accent", `${colorToApply.hue} ${colorToApply.saturation}% ${colorToApply.lightness}%`);
+    document.documentElement.style.setProperty("--event-accent", `${colorToApply.hue} ${colorToApply.saturation}% ${colorToApply.lightness}%`);
 
     // Update accent color with adjusted values (more subtle)
     const accentLight = colorToApply.lightness + 50;
