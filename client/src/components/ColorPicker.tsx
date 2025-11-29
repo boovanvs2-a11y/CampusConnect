@@ -67,11 +67,11 @@ const COLORS: ColorOption[] = [
     dark: { hue: 340, saturation: 82, lightness: 72 },
   },
   {
-    name: "White",
+    name: "Gray",
     hue: 0,
     saturation: 0,
-    lightness: 100,
-    dark: { hue: 0, saturation: 0, lightness: 95 },
+    lightness: 50,
+    dark: { hue: 0, saturation: 0, lightness: 60 },
   },
 ];
 
