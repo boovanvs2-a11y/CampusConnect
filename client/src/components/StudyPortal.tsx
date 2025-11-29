@@ -138,7 +138,7 @@ export function StudyPortal({ notes, faculty, nextClass, userRole }: StudyPortal
                 <div className="flex items-center gap-2 flex-1">
                   <FileText className="h-4 w-4" />
                   <span className="text-sm">Notes</span>
-                  <Badge variant="secondary" className="ml-1 text-xs">
+                  <Badge variant="default" className="ml-1 text-xs">
                     {notes.length}
                   </Badge>
                 </div>
@@ -186,7 +186,7 @@ export function StudyPortal({ notes, faculty, nextClass, userRole }: StudyPortal
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   <span className="text-sm">Faculty</span>
-                  <Badge variant="secondary" className="ml-1 text-xs">
+                  <Badge variant="default" className="ml-1 text-xs">
                     {faculty.filter((f) => f.status === "available").length} online
                   </Badge>
                 </div>
