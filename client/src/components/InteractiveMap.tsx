@@ -158,8 +158,8 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
       };
 
       const customIcon = L.divIcon({
-        html: `<div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 border-2 border-cyan-500 shadow-lg text-xl cursor-pointer hover:scale-110 transition-transform" style="border-color: hsl(188, 97%, 35%); background: #1f2937; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">${getIcon()}</div>`,
-        iconSize: [40, 40],
+        html: `<div class="flex items-center justify-center w-9 h-9 rounded-full bg-cyan-500 text-white border-2 border-white shadow-lg text-lg cursor-pointer hover:scale-125 transition-transform" style="background: hsl(188, 97%, 35%); box-shadow: 0 4px 12px rgba(0,0,0,0.4);">${getIcon()}</div>`,
+        iconSize: [36, 36],
         className: "",
       });
 
