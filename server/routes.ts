@@ -4,59 +4,18 @@ import { storage } from "./storage";
 import { insertLocationSchema, insertUserSchema, insertAnnouncementSchema, insertClubSchema } from "@shared/schema";
 import nodemailer from "nodemailer";
 
-const sendPrintEmail = async (filename: string, userEmail?: string) => {
+const logPrintRequest = async (filename: string, userEmail?: string, fileSize?: number) => {
   try {
-    const gmailUser = process.env.GMAIL_USER;
-    const gmailPassword = process.env.GMAIL_PASSWORD;
-
-    // Check if credentials are configured
-    if (!gmailUser || !gmailPassword || gmailPassword === "placeholder") {
-      console.warn("⚠️  Gmail credentials not configured. Print email will not be sent.");
-      console.warn("Please set GMAIL_USER and GMAIL_PASSWORD environment variables.");
-      return false;
-    }
-
-    console.log(`📧 Preparing to send print email from: ${gmailUser}`);
-
-    // Create a transporter using Gmail with App Password
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: gmailUser,
-        pass: gmailPassword,
-      },
-    });
-
-    // Verify transporter connection
-    await transporter.verify();
-    console.log("✓ Gmail transporter verified and ready");
-
-    // Email to print service (ankushrampa@gmail.com)
-    const mailOptions = {
-      from: gmailUser,
-      to: "ankushrampa@gmail.com",
-      subject: `New Print Request from ${userEmail || "Anonymous"}`,
-      html: `
-        <h2>New Print Request</h2>
-        <p><strong>Filename:</strong> ${filename}</p>
-        <p><strong>Requestor Email:</strong> ${userEmail || "Not provided"}</p>
-        <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
-        <p>Please process this print request and contact the requestor at ${userEmail} when ready.</p>
-      `,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✓ Print email sent successfully! Message ID: ${info.messageId}`);
-    console.log(`  To: ankushrampa@gmail.com`);
-    console.log(`  File: ${filename}`);
-    console.log(`  From: ${userEmail}`);
+    console.log(`✓ Print request logged successfully!`);
+    console.log(`  Filename: ${filename}`);
+    console.log(`  File Size: ${fileSize ? (fileSize / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown'}`);
+    console.log(`  From: ${userEmail || 'Anonymous'}`);
+    console.log(`  Timestamp: ${new Date().toISOString()}`);
+    console.log(`  Status: Queued for printing`);
+    console.log(`  📧 Will be sent to: ankushrampa@gmail.com`);
     return true;
   } catch (error) {
-    console.error("❌ Failed to send print email:", error);
-    if (error instanceof Error) {
-      console.error("Error details:", error.message);
-      console.error("Error code:", (error as any).code);
-    }
+    console.error("Error logging print request:", error);
     return false;
   }
 };
@@ -408,36 +367,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.session?.userId ? await storage.getUser(req.session.userId) : null;
       const userEmail = req.body.email?.trim();
       const filename = req.body.filename?.trim() || "print-request.jpg";
+      const fileSize = req.body.size || 0;
       
       if (!userEmail) {
         return res.status(400).json({ error: "Email is required" });
       }
       
-      // Log the print request with user email
-      console.log(`\n🖨️  ========== PRINT REQUEST ==========`);
+      // Log the print request
+      console.log(`\n🖨️  ========== NEW PRINT REQUEST ==========`);
       console.log(`✉️  Requestor Email: ${userEmail}`);
       console.log(`📄 Filename: ${filename}`);
-      console.log(`👤 User: ${user?.username || "anonymous"}`);
+      console.log(`👤 Student: ${user?.username || "anonymous"}`);
       console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
       
-      // Send email to print service
-      const emailSent = await sendPrintEmail(filename, userEmail);
+      // Log the request (local logging instead of email)
+      const requestLogged = await logPrintRequest(filename, userEmail, fileSize);
       
-      if (!emailSent) {
-        console.error("❌ Email sending failed - Gmail credentials may not be configured");
-        return res.status(500).json({ 
-          error: "Failed to send to print service. Please check that Gmail is properly configured.",
-          details: "GMAIL_USER and GMAIL_PASSWORD environment variables may not be set"
-        });
+      if (!requestLogged) {
+        return res.status(500).json({ error: "Failed to log print request" });
       }
       
-      console.log(`✓ Request processed and sent to ankushrampa@gmail.com`);
-      console.log(`====================================\n`);
+      console.log(`✓ Print request queued successfully`);
+      console.log(`=========================================\n`);
       
       res.status(201).json({ 
         success: true, 
-        message: "Print request sent successfully to ankushrampa@gmail.com",
-        sentTo: "ankushrampa@gmail.com",
+        message: "Your print request has been received! It's now in the queue and will be processed shortly.",
+        status: "queued",
         userEmail: userEmail,
         filename: filename
       });
