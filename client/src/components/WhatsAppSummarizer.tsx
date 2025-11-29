@@ -112,22 +112,23 @@ export function WhatsAppSummarizer() {
 
   return (
     <Card className="backdrop-blur-sm bg-card/90">
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between w-full">
-            <CollapsibleTrigger className="flex items-center gap-2 flex-1">
-              <MessageCircle className="h-5 w-5 text-primary" />
-              <span className="text-lg font-semibold">Group Sumarise</span>
-              <ChevronDown
-                className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${isOpen ? "rotate-180" : ""}`}
-              />
-            </CollapsibleTrigger>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-8" data-testid="button-add-whatsapp">
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </DialogTrigger>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <MessageCircle className="h-5 w-5 text-primary" />
+            Group Sumarise
+          </CardTitle>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 h-8"
+                data-testid="button-add-whatsapp"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </DialogTrigger>
               <DialogContent data-testid="dialog-add-whatsapp" className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Add WhatsApp Group</DialogTitle>
@@ -226,10 +227,9 @@ export function WhatsAppSummarizer() {
                 </div>
               </DialogContent>
             </Dialog>
-          </div>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent className="pt-0 space-y-3">
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
             {groups.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-4">
                 No groups yet. Click + to paste a WhatsApp chat.
@@ -252,9 +252,7 @@ export function WhatsAppSummarizer() {
                 </div>
               ))
             )}
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
+      </CardContent>
     </Card>
   );
 }

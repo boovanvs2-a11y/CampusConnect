@@ -229,7 +229,7 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
       <Card className="backdrop-blur-sm bg-card/90">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Campus Clubs</CardTitle>
+            <CardTitle className="text-lg">Create Club</CardTitle>
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button
