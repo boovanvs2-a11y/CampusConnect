@@ -17,30 +17,53 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Users, ChevronDown, Shield, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 type Club = {
   id: string;
   name: string;
   description: string;
-  members: number;
-  category: string;
-  admin: string;
-  adminInitials: string;
-  isOfficial: boolean;
-  joined: boolean;
+  creatorId?: string;
+  status?: string;
+  createdAt?: string;
 };
 
 type ConnectSectionProps = {
-  clubs: Club[];
+  clubs?: Club[];
 };
 
-export function ConnectSection({ clubs }: ConnectSectionProps) {
+export function ConnectSection({ clubs: initialClubs }: ConnectSectionProps) {
+  // Fetch approved clubs from API
+  const { data: apiClubs = [] } = useQuery({
+    queryKey: ['/api/clubs'],
+    queryFn: async () => {
+      const res = await fetch('/api/clubs');
+      if (!res.ok) throw new Error('Failed to fetch clubs');
+      return res.json();
+    }
+  });
+
+  // Use API clubs if available, otherwise fall back to initial clubs
+  const clubs = apiClubs.length > 0 ? apiClubs : (initialClubs || []);
+
+  // Transform API clubs to match UI expectations
+  const transformedClubs = clubs.map((club: any) => ({
+    id: club.id,
+    name: club.name,
+    description: club.description || '',
+    members: 0, // API doesn't track members yet
+    category: club.category || 'General',
+    admin: 'RNSIT Admin',
+    adminInitials: 'RA',
+    isOfficial: true, // Approved clubs are official
+    joined: false,
+  }));
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [joinedClubs, setJoinedClubs] = useState<Set<string>>(
-    new Set(clubs.filter((c) => c.joined).map((c) => c.id))
+    new Set(transformedClubs.filter((c) => c.joined).map((c) => c.id))
   );
   const [loadingClub, setLoadingClub] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
@@ -127,7 +150,10 @@ export function ConnectSection({ clubs }: ConnectSectionProps) {
           <CollapsibleContent>
             <CardContent className="pt-0">
               <div className="space-y-2 max-h-[220px] overflow-y-auto">
-                {clubs.map((club) => {
+                {transformedClubs.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">No approved clubs yet</p>
+                ) : (
+                transformedClubs.map((club) => {
                   const isJoined = joinedClubs.has(club.id);
                   const isLoading = loadingClub === club.id;
 
@@ -182,7 +208,8 @@ export function ConnectSection({ clubs }: ConnectSectionProps) {
                       </Button>
                     </div>
                   );
-                })}
+                })
+                )}
               </div>
             </CardContent>
           </CollapsibleContent>

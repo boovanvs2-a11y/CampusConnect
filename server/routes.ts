@@ -141,12 +141,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Clubs routes - Get published clubs
+  // Clubs routes - Get approved clubs (visible to all users)
   app.get("/api/clubs", async (_req, res) => {
     try {
       const allClubs = await storage.getClubs(false); // Get all clubs
-      const publishedClubs = allClubs.filter((c) => c.status === "published");
-      res.json(publishedClubs);
+      const approvedClubs = allClubs.filter((c) => c.status === "approved");
+      res.json(approvedClubs);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clubs" });
     }
