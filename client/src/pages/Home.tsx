@@ -270,7 +270,8 @@ export default function Home() {
             </div>
           )}
           
-          <div className={`${viewMode === "desktop" ? "lg:col-span-3" : "col-span-1"} space-y-4`}>
+          <div className={`${viewMode === "desktop" ? "lg:col-span-3" : "col-span-1"} space-y-4 relative`}>
+            <div className="absolute -left-1 top-0 bottom-0 w-1 bg-red-500 rounded-full"></div>
             <div className="relative">
               {viewMode === "desktop" && (
                 <div className="absolute -left-12 top-0 z-50">
@@ -284,14 +285,16 @@ export default function Home() {
             <PrintService />
           </div>
 
-          <div className={`${viewMode === "desktop" ? "lg:col-span-5" : "col-span-1"} space-y-4`}>
+          <div className={`${viewMode === "desktop" ? "lg:col-span-5" : "col-span-1"} space-y-4 relative`}>
+            <div className="absolute -left-1 top-0 bottom-0 w-1 bg-orange-500 rounded-full"></div>
             <ClubsCarousel userRole={user?.role || "student"} />
             <ConnectSection />
             <DiscussSection discussions={mockDiscussions} />
             <WhatsAppSummarizer />
           </div>
 
-          <div className={`${viewMode === "desktop" ? "lg:col-span-4" : "col-span-1"} space-y-4`}>
+          <div className={`${viewMode === "desktop" ? "lg:col-span-4" : "col-span-1"} space-y-4 relative`}>
+            <div className="absolute -left-1 top-0 bottom-0 w-1 bg-cyan-500 rounded-full"></div>
             <div className="relative">
               {viewMode === "desktop" && (
                 <div className="absolute -right-12 top-0 z-50">
