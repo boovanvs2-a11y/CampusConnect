@@ -119,10 +119,10 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
       mapInstanceRef.current = map;
       leafletLoadedRef.current = true;
 
-      // Use Stamen Terrain for colorful map with natural colors
-      L.tileLayer("https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png", {
-        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-        maxZoom: 18,
+      // Use OpenTopoMap for colorful, detailed topographic view
+      L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+        attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap',
+        maxZoom: 17,
       }).addTo(map);
 
       const userIcon = L.divIcon({
