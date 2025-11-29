@@ -124,7 +124,7 @@ export function StudyPortal({ notes, faculty, nextClass, userRole }: StudyPortal
               <AccordionTrigger className="hover:no-underline py-2" data-testid="button-notes-accordion">
                 <div className="flex items-center gap-2 flex-1">
                   <FileText className="h-4 w-4" />
-                  <span className="text-sm">Study Materials</span>
+                  <span className="text-sm">Notes</span>
                   <Badge variant="secondary" className="ml-1 text-xs">
                     {notes.length}
                   </Badge>
