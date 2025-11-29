@@ -404,34 +404,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Publish an approved club
-  app.patch("/api/clubs/:id/publish", async (req: Request & { session?: any }, res) => {
-    try {
-      const user = await storage.getUser(req.session?.userId);
-      if (!user) {
-        return res.status(401).json({ error: "Not authenticated" });
-      }
-
-      const club = await storage.getClubById(req.params.id);
-      if (!club) {
-        return res.status(404).json({ error: "Club not found" });
-      }
-
-      if (club.creatorId !== user.id) {
-        return res.status(403).json({ error: "You can only publish your own clubs" });
-      }
-
-      if (club.status !== "approved") {
-        return res.status(400).json({ error: "Club must be approved before publishing" });
-      }
-
-      const updated = await storage.updateClubStatus(req.params.id, "published", club.approvedBy || undefined);
-      res.json(updated);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to publish club" });
-    }
-  });
-
   // Location API routes
   app.get("/api/locations", async (_req, res) => {
     try {
