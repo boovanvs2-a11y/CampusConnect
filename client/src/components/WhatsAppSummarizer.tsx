@@ -34,7 +34,9 @@ export function WhatsAppSummarizer() {
   const [isOpen, setIsOpen] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
-  const [groupData, setGroupData] = useState("");
+  const [memberName, setMemberName] = useState("");
+  const [memberSummary, setMemberSummary] = useState("");
+  const [members, setMembers] = useState<Array<{ name: string; summary: string }>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -47,11 +49,29 @@ export function WhatsAppSummarizer() {
     }
   });
 
-  const handleAddGroup = async () => {
-    if (!groupName.trim() || !groupData.trim()) {
+  const handleAddMember = () => {
+    if (!memberName.trim() || !memberSummary.trim()) {
       toast({
-        title: "Fill All Fields",
-        description: "Enter group name and chat data",
+        title: "Fill Fields",
+        description: "Enter member name and what they talk about",
+        variant: "destructive",
+      });
+      return;
+    }
+    setMembers([...members, { name: memberName, summary: memberSummary }]);
+    setMemberName("");
+    setMemberSummary("");
+  };
+
+  const handleRemoveMember = (idx: number) => {
+    setMembers(members.filter((_, i) => i !== idx));
+  };
+
+  const handleAddGroup = async () => {
+    if (!groupName.trim() || members.length === 0) {
+      toast({
+        title: "Complete Group Info",
+        description: "Enter group name and at least one member",
         variant: "destructive",
       });
       return;
@@ -61,16 +81,18 @@ export function WhatsAppSummarizer() {
     try {
       await apiRequest("POST", "/api/whatsapp-groups", {
         groupName,
-        groupData,
+        members,
       });
 
       toast({
         title: "Group Added",
-        description: "WhatsApp group data saved successfully",
+        description: "WhatsApp group saved successfully",
       });
 
       setGroupName("");
-      setGroupData("");
+      setMembers([]);
+      setMemberName("");
+      setMemberSummary("");
       setIsDialogOpen(false);
     } catch (error) {
       toast({
@@ -103,7 +125,7 @@ export function WhatsAppSummarizer() {
               </DialogTrigger>
               <DialogContent data-testid="dialog-add-whatsapp">
                 <DialogHeader>
-                  <DialogTitle>Link WhatsApp Group</DialogTitle>
+                  <DialogTitle>Add WhatsApp Group</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -115,23 +137,61 @@ export function WhatsAppSummarizer() {
                       data-testid="input-group-name"
                     />
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Chat Export (paste here)</label>
-                    <Textarea
-                      placeholder="Paste exported WhatsApp chat or paste summary of messages"
-                      value={groupData}
-                      onChange={(e) => setGroupData(e.target.value)}
-                      data-testid="input-group-data"
-                      className="min-h-24"
-                    />
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Add Members</label>
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Member name"
+                        value={memberName}
+                        onChange={(e) => setMemberName(e.target.value)}
+                        data-testid="input-member-name"
+                      />
+                      <Input
+                        placeholder="What they talk about (e.g., memes, assignments)"
+                        value={memberSummary}
+                        onChange={(e) => setMemberSummary(e.target.value)}
+                        data-testid="input-member-summary"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleAddMember}
+                        className="w-full"
+                        data-testid="button-add-member"
+                      >
+                        Add Member
+                      </Button>
+                    </div>
                   </div>
+
+                  {members.length > 0 && (
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {members.map((m, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                          <div className="text-xs">
+                            <p className="font-medium">{m.name}</p>
+                            <p className="text-muted-foreground">{m.summary}</p>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveMember(idx)}
+                            className="text-destructive hover:text-destructive/80"
+                            data-testid={`button-remove-member-${idx}`}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <Button
                     onClick={handleAddGroup}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || members.length === 0}
                     className="w-full"
-                    data-testid="button-add-group"
+                    data-testid="button-save-group"
                   >
-                    Add Group
+                    Save Group
                   </Button>
                 </div>
               </DialogContent>
