@@ -317,7 +317,7 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="text-xs text-muted-foreground">Create and manage club drafts. Submit them for principal approval to make them official.</p>
+          <p className="text-xs text-muted-foreground">Draft clubs and submit for approval.</p>
         </CardContent>
       </Card>
 
