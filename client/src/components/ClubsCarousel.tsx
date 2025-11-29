@@ -85,7 +85,7 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
 
       toast({
         title: "Club Created!",
-        description: `${clubName} submitted for approval.`,
+        description: `${clubName} is now live in Connect.`,
       });
 
       setClubName("");
@@ -293,24 +293,6 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
                   Submit Club
                 </Button>
                 
-                {draftClubs.filter((c: any) => c.status !== "approved").length > 0 && (
-                  <div className="mt-6 pt-6 border-t">
-                    <h4 className="text-xs font-semibold mb-3">Your Pending Submissions</h4>
-                    <div className="space-y-2">
-                      {draftClubs.filter((c: any) => c.status !== "approved").map((club: any) => (
-                        <div
-                          key={club.id}
-                          className="p-2 rounded border bg-muted/20 text-xs"
-                          data-testid={`card-pending-club-inline-${club.id}`}
-                        >
-                          <p className="font-medium truncate">{club.name}</p>
-                          <p className="text-muted-foreground line-clamp-1">{club.description}</p>
-                          <p className="text-muted-foreground text-xs mt-1">Awaiting principal review</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </DialogContent>
           </Dialog>

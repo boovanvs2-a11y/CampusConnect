@@ -234,8 +234,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: req.body.description,
         category: req.body.category,
         creatorId: user.id,
-        status: "pending", // Students' clubs submitted for principal approval
-        approvedBy: undefined,
+        status: "approved", // Clubs appear in Connect immediately after setup
+        approvedBy: user.id,
         createdAt: new Date().toISOString(),
       });
 
