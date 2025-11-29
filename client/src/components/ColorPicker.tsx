@@ -140,7 +140,7 @@ export function ColorPicker() {
           <div className="flex items-center gap-1.5">
             <Palette className="h-5 w-5" />
             <div
-              className="h-3 w-3 rounded-full border border-foreground/30"
+              className="h-3 w-3 aspect-square rounded-full border border-foreground/30 flex-shrink-0"
               style={{
                 backgroundColor: `hsl(${selectedColor.hue} ${selectedColor.saturation}% ${selectedColor.lightness}%)`,
               }}
@@ -158,7 +158,7 @@ export function ColorPicker() {
               className="flex items-center gap-2 cursor-pointer rounded-md p-2 hover:bg-accent"
             >
               <div
-                className={`h-4 w-4 rounded-full border-2 ${
+                className={`h-4 w-4 aspect-square rounded-full border-2 flex-shrink-0 ${
                   selectedColor.name === color.name ? "border-foreground" : "border-muted"
                 }`}
                 style={{
