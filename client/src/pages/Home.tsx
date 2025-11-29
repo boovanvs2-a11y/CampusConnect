@@ -15,7 +15,8 @@ import { CalendarSidebar } from "@/components/CalendarSidebar";
 import { AISidebar } from "@/components/AISidebar";
 import { WhatsAppSummarizer } from "@/components/WhatsAppSummarizer";
 import { Button } from "@/components/ui/button";
-import { LogOut, Monitor, Smartphone } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LogOut, Monitor, Smartphone, BookOpen, Users, Calendar, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
@@ -272,48 +273,99 @@ export default function Home() {
       </header>
 
       <main className={`${viewMode === "desktop" ? "container mx-auto" : "w-full"} px-3 sm:px-4 ${viewMode === "desktop" ? "py-4" : "py-2 sm:py-4"}`}>
-        <div className={`grid ${viewMode === "desktop" ? "gap-4 grid-cols-1 lg:grid-cols-12" : "gap-3 grid-cols-1"}`}>
-          {user?.role === "student" && (
-            <div className={`${viewMode === "desktop" ? "lg:col-span-12" : "col-span-1"} space-y-2 sm:space-y-3`}>
-              <ApprovedClubsNotification />
-              <RejectedClubsNotification />
-            </div>
-          )}
-          
-          <div className={`${viewMode === "desktop" ? "lg:col-span-3" : "col-span-1"} space-y-3 sm:space-y-4`}>
-            <div className="relative">
-              {viewMode === "desktop" && (
+        {viewMode === "desktop" ? (
+          <div className={`grid gap-4 grid-cols-1 lg:grid-cols-12`}>
+            {user?.role === "student" && (
+              <div className={`lg:col-span-12 space-y-2 sm:space-y-3`}>
+                <ApprovedClubsNotification />
+                <RejectedClubsNotification />
+              </div>
+            )}
+            
+            <div className={`lg:col-span-3 space-y-3 sm:space-y-4`}>
+              <div className="relative">
                 <div className="absolute -left-12 top-0 z-50">
                   <CalendarSidebar />
                 </div>
-              )}
-              <AnnouncementsSection announcements={announcements} userRole={user?.role} />
+                <AnnouncementsSection announcements={announcements} userRole={user?.role} />
+              </div>
+              {user?.role === "principal" && <PrincipalPanel />}
+              <StudyPortal notes={notes} faculty={mockFaculty} nextClass={nextClass} userRole={user?.role} />
+              <PrintService />
             </div>
-            {user?.role === "principal" && <PrincipalPanel />}
-            <StudyPortal notes={notes} faculty={mockFaculty} nextClass={nextClass} userRole={user?.role} />
-            <PrintService />
-          </div>
 
-          <div className={`${viewMode === "desktop" ? "lg:col-span-5" : "col-span-1"} space-y-3 sm:space-y-4`}>
-            <ClubsCarousel userRole={user?.role || "student"} />
-            <ConnectSection />
-            <DiscussSection discussions={mockDiscussions} />
-            <WhatsAppSummarizer />
-          </div>
+            <div className={`lg:col-span-5 space-y-3 sm:space-y-4`}>
+              <ClubsCarousel userRole={user?.role || "student"} />
+              <ConnectSection />
+              <DiscussSection discussions={mockDiscussions} />
+              <WhatsAppSummarizer />
+            </div>
 
-          <div className={`${viewMode === "desktop" ? "lg:col-span-4" : "col-span-1"} space-y-3 sm:space-y-4`}>
-            <div className="relative">
-              {viewMode === "desktop" && (
+            <div className={`lg:col-span-4 space-y-3 sm:space-y-4`}>
+              <div className="relative">
                 <div className="absolute -right-12 top-0 z-50">
                   <AISidebar />
                 </div>
-              )}
-              <SocializeSection currentUserId={user?.id} users={{ [user?.id || ""]: { username: user?.username || "You" } }} />
+                <SocializeSection currentUserId={user?.id} users={{ [user?.id || ""]: { username: user?.username || "You" } }} />
+              </div>
+              <CompactEventsList events={mockEvents} />
+              <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
             </div>
-            <CompactEventsList events={mockEvents} />
-            <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
           </div>
-        </div>
+        ) : (
+          <div className="space-y-3">
+            {user?.role === "student" && (
+              <div className="space-y-2">
+                <ApprovedClubsNotification />
+                <RejectedClubsNotification />
+              </div>
+            )}
+            
+            <Tabs defaultValue="study" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-4" data-testid="mobile-tabs">
+                <TabsTrigger value="study" className="text-xs sm:text-sm gap-1" data-testid="tab-study">
+                  <BookOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">Study</span>
+                </TabsTrigger>
+                <TabsTrigger value="clubs" className="text-xs sm:text-sm gap-1" data-testid="tab-clubs">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Clubs</span>
+                </TabsTrigger>
+                <TabsTrigger value="events" className="text-xs sm:text-sm gap-1" data-testid="tab-events">
+                  <Calendar className="h-4 w-4" />
+                  <span className="hidden sm:inline">Events</span>
+                </TabsTrigger>
+                <TabsTrigger value="social" className="text-xs sm:text-sm gap-1" data-testid="tab-social">
+                  <MessageSquare className="h-4 w-4" />
+                  <span className="hidden sm:inline">Social</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="study" className="space-y-3 mt-0">
+                <AnnouncementsSection announcements={announcements} userRole={user?.role} />
+                {user?.role === "principal" && <PrincipalPanel />}
+                <StudyPortal notes={notes} faculty={mockFaculty} nextClass={nextClass} userRole={user?.role} />
+                <PrintService />
+              </TabsContent>
+
+              <TabsContent value="clubs" className="space-y-3 mt-0">
+                <ClubsCarousel userRole={user?.role || "student"} />
+                <ConnectSection />
+              </TabsContent>
+
+              <TabsContent value="events" className="space-y-3 mt-0">
+                <CompactEventsList events={mockEvents} />
+                <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
+              </TabsContent>
+
+              <TabsContent value="social" className="space-y-3 mt-0">
+                <SocializeSection currentUserId={user?.id} users={{ [user?.id || ""]: { username: user?.username || "You" } }} />
+                <DiscussSection discussions={mockDiscussions} />
+                <WhatsAppSummarizer />
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </main>
     </div>
   );
