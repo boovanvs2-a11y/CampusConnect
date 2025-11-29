@@ -223,12 +223,20 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-0 sm:h-14 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <svg className="h-7 w-7 flex-shrink-0" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Left circle - White */}
+              <defs>
+                <clipPath id="leftCircle">
+                  <circle cx="10" cy="12" r="7" />
+                </clipPath>
+              </defs>
+              
+              {/* Left circle - White stroke */}
               <circle cx="10" cy="12" r="7" stroke="white" strokeWidth="1.5" fill="none" />
-              {/* Right circle - White */}
+              
+              {/* Right circle - White stroke */}
               <circle cx="22" cy="12" r="7" stroke="white" strokeWidth="1.5" fill="none" />
-              {/* Intersection fill - Common area with white */}
-              <ellipse cx="16" cy="12" rx="4" ry="7" fill="white" />
+              
+              {/* Intersection fill - Right circle clipped to left circle area */}
+              <circle cx="22" cy="12" r="7" fill="white" clipPath="url(#leftCircle)" />
             </svg>
             <h1 className="text-base sm:text-lg font-bold" data-testid="text-app-title">
               CampusConnect
