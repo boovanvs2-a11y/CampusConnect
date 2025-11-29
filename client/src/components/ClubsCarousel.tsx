@@ -53,7 +53,7 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
   }) as any;
 
   // Fetch user's draft clubs
-  const { data: draftClubs = [] } = useQuery({
+  const { data: draftClubs = [], refetch: refetchDrafts } = useQuery({
     queryKey: ["/api/clubs/my-drafts"],
     queryFn: async () => {
       const res = await fetch("/api/clubs/my-drafts", {
@@ -63,6 +63,13 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
       return res.json();
     },
   });
+
+  // Refetch draft clubs when dialog opens to see if principal approved any
+  useEffect(() => {
+    if (isCreateOpen) {
+      refetchDrafts();
+    }
+  }, [isCreateOpen, refetchDrafts]);
 
 
   const handleCreateClub = async () => {
