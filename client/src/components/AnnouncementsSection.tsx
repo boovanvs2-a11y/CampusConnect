@@ -48,7 +48,7 @@ export function AnnouncementsSection({ announcements, userRole }: AnnouncementsS
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between w-full">
             <CollapsibleTrigger className="flex items-center gap-2 flex-1">
-              <AlertCircle className="h-5 w-5 text-announcement-accent" />
+              <AlertCircle className="h-5 w-5 text-announcement-accent dark:text-announcement-accent" />
               <CardTitle className="text-lg">Announcements</CardTitle>
               <ChevronDown
                 className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${isOpen ? "rotate-180" : ""}`}

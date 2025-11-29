@@ -96,7 +96,7 @@ export function StudyPortal({ notes, faculty, nextClass, userRole }: StudyPortal
           <CardHeader className="pb-3">
             <CollapsibleTrigger className="flex items-center justify-between w-full">
               <CardTitle className="text-lg flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" />
+                <BookOpen className="h-5 w-5 text-primary dark:text-primary" />
                 Study Portal
               </CardTitle>
               <ChevronDown
