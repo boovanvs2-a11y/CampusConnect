@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
 import sportsClubBanner from "@assets/generated_images/sports_club_banner_image.png";
+import { formatDistanceToNow } from "date-fns";
 
 // Class schedule based on RNSIT timetable
 const classSchedule: Record<number, Array<{ startTime: string; endTime: string; course: string; location: string }>> = {
@@ -119,6 +120,9 @@ export default function Home() {
   const { data: announcements = [] } = useQuery({
     queryKey: ["/api/announcements"],
   });
+  const { data: fetchedNotes = [] } = useQuery({
+    queryKey: ["/api/notes"],
+  });
 
   useEffect(() => {
     const userDataEl = document.getElementById("user-data") as HTMLInputElement;
@@ -149,12 +153,11 @@ export default function Home() {
     }
   }, []);
 
-  const mockNotes = [
-    { id: "1", title: "Linear Algebra - Eigenvalues", subject: "Mathematics", date: "2 days ago" },
-    { id: "2", title: "Calculus - Integration", subject: "Mathematics", date: "1 week ago" },
-    { id: "3", title: "OOP Concepts", subject: "Computer Science", date: "3 days ago" },
-    { id: "4", title: "Data Structures", subject: "Computer Science", date: "5 days ago" },
-  ];
+  // Transform fetched notes to include formatted date
+  const notes = fetchedNotes.map((note: any) => ({
+    ...note,
+    date: note.createdAt ? formatDistanceToNow(new Date(note.createdAt), { addSuffix: true }) : "Recently added",
+  }));
 
   const mockFaculty = [
     { id: "1", name: "Dr. Sarah Johnson", department: "Computer Science", status: "available" as const, email: "sjohnson@rnsit.ac.in", phone: "+91-9876543210" },
@@ -279,7 +282,7 @@ export default function Home() {
               <AnnouncementsSection announcements={announcements} userRole={user?.role} />
             </div>
             {user?.role === "principal" && <PrincipalPanel />}
-            <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={nextClass} />
+            <StudyPortal notes={notes} faculty={mockFaculty} nextClass={nextClass} userRole={user?.role} />
             <PrintService />
           </div>
 

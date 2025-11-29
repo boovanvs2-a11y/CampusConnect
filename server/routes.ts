@@ -130,6 +130,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notes routes - Lecturer can create, everyone can read
+  app.get("/api/notes", async (_req, res) => {
+    try {
+      const notes = await storage.getNotes();
+      res.json(notes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch notes" });
+    }
+  });
+
+  app.post("/api/notes", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user || user.role !== "lecturer") {
+        return res.status(403).json({ error: "Only lecturers can create notes" });
+      }
+
+      const note = await storage.createNote({
+        title: req.body.title,
+        subject: req.body.subject,
+        content: req.body.content,
+        creatorId: user.id,
+        createdAt: new Date().toISOString(),
+      });
+
+      res.status(201).json(note);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create note" });
+    }
+  });
+
   // Clubs routes - Get published clubs
   app.get("/api/clubs", async (_req, res) => {
     try {

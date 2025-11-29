@@ -15,9 +15,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Users, Clock, FileText, ExternalLink, GraduationCap, Mail, Phone } from "lucide-react";
+import { BookOpen, Users, Clock, FileText, ExternalLink, GraduationCap, Mail, Phone, Plus } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { AddNoteForm } from "./AddNoteForm";
 
 type Note = {
   id: string;
@@ -45,6 +46,7 @@ type StudyPortalProps = {
   notes: Note[];
   faculty: Faculty[];
   nextClass: Schedule;
+  userRole?: string;
 };
 
 const statusConfig = {
@@ -53,10 +55,11 @@ const statusConfig = {
   offline: { color: "hsl(var(--muted-foreground))", label: "Offline" },
 };
 
-export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
+export function StudyPortal({ notes, faculty, nextClass, userRole }: StudyPortalProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [selectedFaculty, setSelectedFaculty] = useState<Faculty | null>(null);
+  const isLecturer = userRole === "lecturer";
   
   const notesBySubject = notes.reduce((acc, note) => {
     if (!acc[note.subject]) acc[note.subject] = [];
@@ -119,13 +122,27 @@ export function StudyPortal({ notes, faculty, nextClass }: StudyPortalProps) {
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="notes" className="border-b-0">
               <AccordionTrigger className="hover:no-underline py-2" data-testid="button-notes-accordion">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-1">
                   <FileText className="h-4 w-4" />
-                  <span className="text-sm">My Notes</span>
+                  <span className="text-sm">Study Materials</span>
                   <Badge variant="secondary" className="ml-1 text-xs">
                     {notes.length}
                   </Badge>
                 </div>
+                {isLecturer && (
+                  <AddNoteForm>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 mr-2"
+                      title="Add note"
+                      data-testid="button-add-note"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </AddNoteForm>
+                )}
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-1 max-h-[180px] overflow-y-auto">
