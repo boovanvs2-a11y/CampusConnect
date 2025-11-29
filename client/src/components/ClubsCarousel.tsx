@@ -84,8 +84,8 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
       });
 
       toast({
-        title: "Club Created!",
-        description: `${clubName} is now live in Connect.`,
+        title: "Club Submitted!",
+        description: `${clubName} submitted for principal approval.`,
       });
 
       setClubName("");
@@ -124,7 +124,7 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
 
       toast({
         title: "Setup Complete!",
-        description: "Club is ready to submit for approval.",
+        description: "Club is now live in Connect.",
       });
 
       setClubCategory("");
@@ -308,14 +308,14 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
       {draftClubs.filter((c: any) => c.status === "approved").length > 0 && (
         <Card className="backdrop-blur-sm bg-card/90">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Approved Clubs</CardTitle>
-            <p className="text-xs text-muted-foreground">Your clubs approved by principal</p>
+            <CardTitle className="text-lg">Approved - Ready to Setup</CardTitle>
+            <p className="text-xs text-muted-foreground">Approved by principal, complete setup to go live</p>
           </CardHeader>
           <CardContent className="space-y-2">
             {draftClubs.filter((c: any) => c.status === "approved").map((club: any) => (
               <div
                 key={club.id}
-                className="p-3 rounded-lg border bg-muted/30"
+                className="p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-2"
                 data-testid={`card-approved-club-${club.id}`}
               >
                 <div className="flex-1 min-w-0">
@@ -323,11 +323,64 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
                   <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
                   <p className="text-xs text-primary font-medium mt-1">✓ Approved by Principal</p>
                 </div>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => openSetupDialog(club.id, club.description || "", club.category || "")}
+                  disabled={isSubmitting}
+                  data-testid={`button-setup-approved-${club.id}`}
+                  className="flex-shrink-0"
+                >
+                  Setup
+                </Button>
               </div>
             ))}
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={isSetupOpen} onOpenChange={setIsSetupOpen}>
+        <DialogContent data-testid="dialog-setup-club">
+          <DialogHeader>
+            <DialogTitle>Complete Club Setup</DialogTitle>
+            <DialogDescription>
+              Finalize your club details to publish it to Connect.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Category</label>
+              <Input
+                placeholder="e.g., Technology, Sports, Cultural"
+                value={clubCategory}
+                onChange={(e) => setClubCategory(e.target.value)}
+                data-testid="input-club-category-setup"
+                disabled={isSubmitting}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea
+                placeholder="Brief description of the club"
+                value={clubDesc}
+                onChange={(e) => setClubDesc(e.target.value)}
+                data-testid="input-club-description-setup"
+                disabled={isSubmitting}
+                className="min-h-20"
+              />
+            </div>
+            <Button
+              onClick={handleSetupClub}
+              disabled={isSubmitting}
+              className="w-full"
+              data-testid="button-complete-setup"
+            >
+              {isSubmitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
+              Go Live in Connect
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

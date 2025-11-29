@@ -211,12 +211,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Clubs routes - Get approved clubs (visible to all users)
+  // Clubs routes - Get live clubs (visible to all users in Connect)
   app.get("/api/clubs", async (_req, res) => {
     try {
       const allClubs = await storage.getClubs(false); // Get all clubs
-      const approvedClubs = allClubs.filter((c) => c.status === "approved");
-      res.json(approvedClubs);
+      const liveClubs = allClubs.filter((c) => c.status === "live");
+      res.json(liveClubs);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clubs" });
     }
@@ -234,8 +234,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: req.body.description,
         category: req.body.category,
         creatorId: user.id,
-        status: "approved", // Clubs appear in Connect immediately after setup
-        approvedBy: user.id,
+        status: "pending", // Awaiting principal approval
+        approvedBy: undefined,
         createdAt: new Date().toISOString(),
       });
 
@@ -245,7 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's draft/pending clubs
+  // Get user's pending and approved clubs
   app.get("/api/clubs/my-drafts", async (req: Request & { session?: any }, res) => {
     try {
       const user = await storage.getUser(req.session?.userId);
@@ -254,14 +254,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const allClubs = await storage.getClubs(false);
-      const myClubs = allClubs.filter((c) => c.creatorId === user.id && c.status !== "approved");
+      const myClubs = allClubs.filter((c) => c.creatorId === user.id && c.status !== "live");
       res.json(myClubs);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch drafts" });
+      res.status(500).json({ error: "Failed to fetch clubs" });
     }
   });
 
-  // Setup a draft club with details
+  // Setup an approved club - makes it live in Connect
   app.patch("/api/clubs/:id/setup", async (req: Request & { session?: any }, res) => {
     try {
       const user = await storage.getUser(req.session?.userId);
@@ -274,9 +274,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Unauthorized" });
       }
 
+      if (club.status !== "approved") {
+        return res.status(400).json({ error: "Club must be approved before setup" });
+      }
+
       const updatedClub = await storage.updateClub(req.params.id, {
         description: req.body.description,
         category: req.body.category,
+        status: "live",
         isSetup: true,
       });
 
