@@ -14,7 +14,7 @@ import { ColorPicker } from "@/components/ColorPicker";
 import { CalendarSidebar } from "@/components/CalendarSidebar";
 import { AISidebar } from "@/components/AISidebar";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Monitor, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
@@ -22,6 +22,10 @@ import sportsClubBanner from "@assets/generated_images/sports_club_banner_image.
 
 export default function Home() {
   const [user, setUser] = useState<{ id: string; username: string; role: string } | null>(null);
+  const [viewMode, setViewMode] = useState<"mobile" | "desktop">(() => {
+    const saved = localStorage.getItem("campusconnect-view-mode");
+    return (saved as "mobile" | "desktop") || "desktop";
+  });
   const { data: announcements = [] } = useQuery({
     queryKey: ["/api/announcements"],
   });
@@ -31,6 +35,12 @@ export default function Home() {
     const userData = userDataEl?.value ? JSON.parse(userDataEl.value) : null;
     setUser(userData);
   }, []);
+
+  const toggleViewMode = () => {
+    const newMode = viewMode === "desktop" ? "mobile" : "desktop";
+    setViewMode(newMode);
+    localStorage.setItem("campusconnect-view-mode", newMode);
+  };
 
   const handleLogout = () => {
     const logoutBtn = document.getElementById("logout-trigger") as HTMLButtonElement;
@@ -132,6 +142,19 @@ export default function Home() {
             <ColorPicker />
             <Button
               variant="outline"
+              size="icon"
+              onClick={toggleViewMode}
+              data-testid="button-view-toggle"
+              title={`Switch to ${viewMode === "desktop" ? "mobile" : "desktop"} view`}
+            >
+              {viewMode === "desktop" ? (
+                <Smartphone className="h-4 w-4" />
+              ) : (
+                <Monitor className="h-4 w-4" />
+              )}
+            </Button>
+            <Button
+              variant="outline"
               size="sm"
               onClick={handleLogout}
               data-testid="button-logout"
@@ -144,7 +167,7 @@ export default function Home() {
       </header>
 
       <main className="container mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className={`grid gap-4 ${viewMode === "desktop" ? "grid-cols-1 lg:grid-cols-12" : "grid-cols-1"}`}>
           {user?.role === "student" && (
             <div className="lg:col-span-12 space-y-3">
               <ApprovedClubsNotification />
@@ -152,7 +175,7 @@ export default function Home() {
             </div>
           )}
           
-          <div className="lg:col-span-3 space-y-4">
+          <div className={`${viewMode === "desktop" ? "lg:col-span-3" : "col-span-1"} space-y-4`}>
             <div className="relative">
               <div className="absolute -left-12 top-0 z-50">
                 <CalendarSidebar />
@@ -164,13 +187,13 @@ export default function Home() {
             <PrintService />
           </div>
 
-          <div className="lg:col-span-5 space-y-4">
+          <div className={`${viewMode === "desktop" ? "lg:col-span-5" : "col-span-1"} space-y-4`}>
             <ClubsCarousel clubs={mockClubs} userRole={user?.role || "student"} />
             <ConnectSection clubs={mockConnectClubs} />
             <DiscussSection discussions={mockDiscussions} />
           </div>
 
-          <div className="lg:col-span-4 space-y-4">
+          <div className={`${viewMode === "desktop" ? "lg:col-span-4" : "col-span-1"} space-y-4`}>
             <div className="relative">
               <div className="absolute -right-12 top-0 z-50">
                 <AISidebar />
