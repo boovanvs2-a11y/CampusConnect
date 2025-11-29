@@ -60,36 +60,11 @@ export function WhatsAppSummarizer() {
       return;
     }
 
-    setIsAnalyzing(true);
-    try {
-      const result = await apiRequest("POST", "/api/whatsapp-groups/analyze", {
-        groupName,
-        chatText,
-      });
-
-      setAnalyzedMembers(result.members || []);
-      
-      if (result.members && result.members.length > 0) {
-        toast({
-          title: "Analysis Complete",
-          description: `Found ${result.members.length} members`,
-        });
-      } else {
-        toast({
-          title: "No members found",
-          description: "Try pasting a different chat or add members manually",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Analysis Failed",
-        description: "Could not analyze chat. Try pasting again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
+    toast({
+      title: "Premium Feature",
+      description: "Upgrade to premium to analyze WhatsApp chats with AI",
+      variant: "destructive",
+    });
   };
 
   const handleSaveGroup = async () => {
