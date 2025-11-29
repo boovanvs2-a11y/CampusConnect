@@ -227,11 +227,11 @@ export function WhatsAppSummarizer() {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-            {groups.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">
-                No groups yet. Click + to add one.
-              </p>
-            ) : (
+        {groups.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-4">
+            No groups yet. Click + to paste a WhatsApp chat.
+          </p>
+        ) : (
               groups.map((group: GroupSummary) => (
                 <div key={group.id} className="space-y-2 pb-3 border-b border-border last:border-b-0">
                   <p className="text-sm font-semibold text-foreground">{group.groupName}</p>
