@@ -132,6 +132,7 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
       setIsSetupOpen(false);
       setSetupClubId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/clubs/my-drafts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clubs"] }); // Refresh Connect section
     } catch (error) {
       toast({
         title: "Setup Failed",
