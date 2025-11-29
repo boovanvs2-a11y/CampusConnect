@@ -153,11 +153,22 @@ export default function Home() {
     }
   }, []);
 
+  // Demo notes (default examples)
+  const demoNotes = [
+    { id: "demo-1", title: "Linear Algebra - Eigenvalues", subject: "Mathematics", date: "2 days ago" },
+    { id: "demo-2", title: "Calculus - Integration", subject: "Mathematics", date: "1 week ago" },
+    { id: "demo-3", title: "OOP Concepts", subject: "Computer Science", date: "3 days ago" },
+    { id: "demo-4", title: "Data Structures", subject: "Computer Science", date: "5 days ago" },
+  ];
+
   // Transform fetched notes to include formatted date
-  const notes = fetchedNotes.map((note: any) => ({
+  const apiNotes = fetchedNotes.map((note: any) => ({
     ...note,
     date: note.createdAt ? formatDistanceToNow(new Date(note.createdAt), { addSuffix: true }) : "Recently added",
   }));
+
+  // Combine demo notes and API notes
+  const notes = [...demoNotes, ...apiNotes];
 
   const mockFaculty = [
     { id: "1", name: "Dr. Sarah Johnson", department: "Computer Science", status: "available" as const, email: "sjohnson@rnsit.ac.in", phone: "+91-9876543210" },
