@@ -31,12 +31,12 @@ type Club = {
 };
 
 type ConnectSectionProps = {
-  clubs?: Club[];
+  // No props needed - fetches directly from API
 };
 
-export function ConnectSection({ clubs: initialClubs }: ConnectSectionProps) {
-  // Fetch approved clubs from API
-  const { data: apiClubs = [] } = useQuery({
+export function ConnectSection({}: ConnectSectionProps) {
+  // Fetch approved clubs created by students and approved by principal
+  const { data: clubs = [] } = useQuery({
     queryKey: ['/api/clubs'],
     queryFn: async () => {
       const res = await fetch('/api/clubs');
@@ -45,19 +45,16 @@ export function ConnectSection({ clubs: initialClubs }: ConnectSectionProps) {
     }
   });
 
-  // Use API clubs if available, otherwise fall back to initial clubs
-  const clubs = apiClubs.length > 0 ? apiClubs : (initialClubs || []);
-
   // Transform API clubs to match UI expectations
   const transformedClubs = clubs.map((club: any) => ({
     id: club.id,
     name: club.name,
     description: club.description || '',
-    members: 0, // API doesn't track members yet
+    members: 0,
     category: club.category || 'General',
-    admin: 'RNSIT Admin',
+    admin: 'RNSIT Admin', // Approved by principal
     adminInitials: 'RA',
-    isOfficial: true, // Approved clubs are official
+    isOfficial: true, // These are official approved clubs
     joined: false,
   }));
   const { toast } = useToast();

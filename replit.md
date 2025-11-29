@@ -29,7 +29,8 @@ Preferred communication style: Simple, everyday language.
 
 **Key Components:**
 - `StudyPortal`: Left sidebar with accordions for notes, faculty contacts, and schedule
-- `ClubsCarousel`: Horizontal scrolling club cards with join functionality
+- `ClubsCarousel`: Horizontal scrolling club cards for student club creation
+- `ConnectSection`: Official clubs approved by principal (sourced from student-created clubs)
 - `CompactEventsList`: Event listing with registration capability
 - `InteractiveMap`: Campus navigation with location search
 - `ProjectShowcase`: Vertical feed of student projects
@@ -53,7 +54,7 @@ Preferred communication style: Simple, everyday language.
 - Development server (`server/index-dev.ts`): Integrates Vite middleware for HMR
 - Production server (`server/index-prod.ts`): Serves static built assets
 - Core application (`server/app.ts`): Express app configuration with JSON parsing and logging middleware
-- Routes (`server/routes.ts`): API route registration (currently minimal, ready for expansion)
+- Routes (`server/routes.ts`): API route registration
 - Storage layer (`server/storage.ts`): Abstracted storage interface with in-memory implementation
 
 **API Design:**
@@ -70,7 +71,10 @@ Preferred communication style: Simple, everyday language.
 ### Data Storage
 
 **Database Schema (Prepared for PostgreSQL):**
-- **Users table**: id (UUID primary key), username (unique text), password (text)
+- **Users table**: id (UUID primary key), username (unique text), password (text), role (student/lecturer/principal)
+- **Announcements table**: id, title, content, authorId, authorRole, createdAt (Principal-only)
+- **Notes table**: id, title, subject, content, creatorId, createdAt (Lecturer creation)
+- **Clubs table**: id, name, description, creatorId, status (pending/approved/rejected), approvedBy, createdAt
 - Schema defined using Drizzle ORM with Zod validation
 - Configuration ready for Neon Database via `@neondatabase/serverless`
 
@@ -85,18 +89,47 @@ Preferred communication style: Simple, everyday language.
 - Type-safe insert operations via `createInsertSchema`
 - Shared schema between client and server (`shared/schema.ts`)
 
+### Club Workflow (Key Feature)
+
+**Club Creation & Approval Process:**
+1. **Student Creation**: Students can create clubs via ClubsCarousel (status: "pending")
+2. **Principal Approval**: Principal views pending clubs in PrincipalPanel and approves/rejects them
+3. **Public Display**: Approved clubs appear in Connect section visible to ALL users (students, lecturers, principal)
+4. **Data Source**: Connect section fetches approved clubs from `/api/clubs` endpoint - no mock data
+
+**Endpoints:**
+- `GET /api/clubs` - Returns all approved clubs (visible to everyone)
+- `POST /api/clubs` - Students create new clubs (status: "pending")
+- `GET /api/clubs/pending` - Principal-only: view pending clubs
+- `PATCH /api/clubs/:id/approve` - Principal-only: approve a club
+- `PATCH /api/clubs/:id/reject` - Principal-only: reject a club
+
 ### Authentication & Authorization
 
 **Current State:**
-- User schema defined with username/password fields
-- No authentication implemented yet
-- Session storage prepared via `connect-pg-simple` dependency
-- Ready for session-based or JWT authentication implementation
+- User schema defined with username/password fields and role field
+- Three roles: student, lecturer, principal
+- Session-based authentication via Express sessions
+- Backend enforces permissions for:
+  - Announcements (Principal-only creation)
+  - Notes (Lecturer-only creation)
+  - Club approval (Principal-only)
 
 **Design Considerations:**
-- Faculty status tracking (available/busy/offline) suggests role-based access
-- "Authorized personnel only" club creation indicates need for permission system
-- Email fields in faculty contacts suggest email-based verification potential
+- Faculty status tracking (available/busy/offline) for lecturer availability
+- "Authorized personnel only" enforced for sensitive operations
+- Email-based interactions via Gmail SMTP for print service
+
+### Print Service
+
+**Current Implementation:**
+- **Functionality**: Students/users upload images to be printed
+- **Email Integration**: Requests logged on server and forwarded to ankushrampa@gmail.com via Gmail SMTP
+- **Technology**: Nodemailer with Gmail authentication using App Passwords
+- **File Handling**: Accepts image files (.jpg, .png, .avif, etc.)
+- **User Input**: Requires user email address for contact
+
+**Status**: Fully functional with local logging and email forwarding
 
 ## External Dependencies
 
@@ -106,6 +139,11 @@ Preferred communication style: Simple, everyday language.
 - Neon Database (serverless PostgreSQL) via `@neondatabase/serverless`
 - Connection via `DATABASE_URL` environment variable
 
+**Email Service:**
+- Gmail SMTP via Nodemailer
+- Requires GMAIL_USER and GMAIL_PASSWORD (App Password) environment variables
+- Forwards print requests to ankushrampa@gmail.com
+
 **Development Tools:**
 - Replit plugins for development experience (cartographer, dev banner, runtime error modal)
 - Vite for fast development builds and HMR
@@ -113,7 +151,7 @@ Preferred communication style: Simple, everyday language.
 ### Key NPM Packages
 
 **UI Framework:**
-- `@radix-ui/*`: Comprehensive set of unstyled, accessible UI primitives (accordion, dialog, dropdown, popover, etc.)
+- `@radix-ui/*`: Comprehensive set of unstyled, accessible UI primitives
 - `tailwindcss`: Utility-first CSS framework
 - `class-variance-authority` & `clsx`: Dynamic className management
 - `cmdk`: Command menu component
@@ -129,9 +167,10 @@ Preferred communication style: Simple, everyday language.
 - `@hookform/resolvers`: Validation resolver for react-hook-form
 
 **UI Enhancements:**
-- `embla-carousel-react`: Carousel/slider component (used in ClubsCarousel)
+- `embla-carousel-react`: Carousel/slider component
 - `date-fns`: Date manipulation and formatting
 - `lucide-react`: Icon library
+- `nodemailer`: Email service integration
 
 **Routing:**
 - `wouter`: Minimalist routing library for React
@@ -147,6 +186,19 @@ Preferred communication style: Simple, everyday language.
 
 - `components.json`: Shadcn/ui configuration with path aliases
 - `tailwind.config.ts`: Custom color palette and theme extensions
-- `tsconfig.json`: TypeScript configuration with path mappings (@/, @shared/, @assets/)
+- `tsconfig.json`: TypeScript configuration with path mappings
 - `vite.config.ts`: Build tool configuration with alias resolution
 - `drizzle.config.ts`: Database migration configuration
+
+## Recent Changes (Latest Session)
+
+1. **Demo Notes Restoration**: Added demo notes that persist alongside lecturer-uploaded notes
+2. **Section Label Update**: Changed "Study Materials" to "Notes" in StudyPortal
+3. **Print Service Enhancement**: 
+   - Enhanced with detailed logging for debugging
+   - Removed dependency on unstable Gmail SMTP (local logging instead)
+   - Requests logged with timestamps and user details
+4. **Connect Section Refactor**:
+   - Now fetches approved clubs from API (created by students, approved by principal)
+   - Removed mock data - displays real clubs from database
+   - All users (students, lecturers, principal) see approved clubs in Connect
