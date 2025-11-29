@@ -120,10 +120,10 @@ export default function Home() {
   });
   const { data: announcements = [] } = useQuery({
     queryKey: ["/api/announcements"],
-  });
+  }) as any;
   const { data: fetchedNotes = [] } = useQuery({
     queryKey: ["/api/notes"],
-  });
+  }) as any;
 
   useEffect(() => {
     const userDataEl = document.getElementById("user-data") as HTMLInputElement;
@@ -163,7 +163,7 @@ export default function Home() {
   ];
 
   // Transform fetched notes to include formatted date
-  const apiNotes = fetchedNotes.map((note: any) => ({
+  const apiNotes = (Array.isArray(fetchedNotes) ? fetchedNotes : []).map((note: any) => ({
     ...note,
     date: note.createdAt ? formatDistanceToNow(new Date(note.createdAt), { addSuffix: true }) : "Recently added",
   }));
