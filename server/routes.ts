@@ -21,51 +21,73 @@ const logPrintRequest = async (filename: string, userEmail?: string, fileSize?: 
 };
 
 const extractMembersBasic = (chatText: string): Array<{ name: string; summary: string }> => {
-  // Basic extraction: find patterns like "Name: message" or timestamps with names
   const members: { [key: string]: string[] } = {};
+  const systemKeywords = ['Timeline', 'Previously', 'Messages and calls', 'Group created', 'You added', 'You were added', 'Group icon', 'left', 'joined', 'changed the group', 'created group'];
   
-  // Match lines starting with a name (contains alphanumeric and spaces)
   const lines = chatText.split('\n');
   
   for (const line of lines) {
-    // Skip empty lines and system messages
-    if (!line.trim() || line.includes('Messages and calls are encrypted')) continue;
+    const trimmed = line.trim();
+    if (!trimmed) continue;
     
-    // Try to extract name from WhatsApp format: "Name: message" or "Name message"
-    const match = line.match(/^(?:\d{1,2}\/\d{1,2}\/\d{2,4},?\s*)?(?:\d{1,2}:\d{2}(?:\s*[AP]M)?\s*-?\s*)?([A-Z][a-zA-Z\s]+?)(?::|\s+)/);
+    // Skip system messages
+    if (systemKeywords.some(keyword => trimmed.includes(keyword))) continue;
     
-    if (match && match[1]) {
-      const name = match[1].trim();
-      if (name.length > 1 && name.length < 50) {
-        if (!members[name]) {
-          members[name] = [];
+    // Match WhatsApp format: [time] Name: message
+    // Formats: 
+    // "10:30 PM, 1/1/2024 - Name: message"
+    // "Name: message"
+    // "1/1/2024, 10:30 PM - Name: message"
+    const patterns = [
+      /^(?:[\d]{1,2}:[\d]{2}\s*(?:AM|PM),?\s*)?(?:[\d]{1,2}\/[\d]{1,2}\/[\d]{4},?\s*)?(?:[\d]{1,2}:[\d]{2}\s*(?:AM|PM)?\s*-\s*)?([A-Za-z][A-Za-z\s]{1,40}?):\s*(.+)$/,
+      /^[\d]{1,2}\/[\d]{1,2}\/[\d]{4}\s*,?\s*[\d]{1,2}:[\d]{2}\s*(?:AM|PM)?\s*-\s*([A-Za-z][A-Za-z\s]{1,40}?):\s*(.+)$/,
+      /^([A-Za-z][A-Za-z\s]{1,40}?):\s+(.+)$/
+    ];
+    
+    let matched = false;
+    for (const pattern of patterns) {
+      const match = trimmed.match(pattern);
+      if (match && match[1]) {
+        let name = match[1].trim();
+        
+        // Filter out invalid names
+        if (name.length >= 2 && name.length <= 40 && !name.match(/^\d+$/) && !systemKeywords.some(kw => name.includes(kw))) {
+          name = name.replace(/\s+/g, ' '); // Normalize spaces
+          if (!members[name]) {
+            members[name] = [];
+          }
+          members[name].push(trimmed);
+          matched = true;
+          break;
         }
-        members[name].push(line);
       }
     }
   }
   
-  // Convert to array with basic summaries
+  // Convert to array with summaries
   return Object.entries(members)
     .map(([name, messages]) => {
-      // Simple keyword detection
-      let summary = "conversations";
       const text = messages.join(' ').toLowerCase();
-      if (text.includes('assignment') || text.includes('homework') || text.includes('project')) {
+      let summary = "chat";
+      
+      if (text.includes('assignment') || text.includes('homework') || text.includes('submit') || text.includes('deadline')) {
         summary = "assignments";
-      } else if (text.includes('haha') || text.includes('lol') || text.includes('😂') || text.includes('funny')) {
+      } else if (text.match(/(haha|lol|😂|funny|lmao|hilarious)/)) {
         summary = "memes";
-      } else if (text.includes('test') || text.includes('exam') || text.includes('exam')) {
+      } else if (text.includes('exam') || text.includes('test')) {
         summary = "exams";
-      } else if (text.includes('meet') || text.includes('study') || text.includes('class')) {
+      } else if (text.includes('study') || text.includes('notes') || text.includes('class')) {
         summary = "study";
-      } else if (text.includes('thanks') || text.includes('help') || text.includes('question')) {
+      } else if (text.includes('thank') || text.includes('help') || text.includes('question') || text.includes('how')) {
         summary = "questions";
+      } else if (text.includes('meet') || text.includes('hangout') || text.includes('coffee')) {
+        summary = "hangouts";
       }
+      
       return { name, summary };
     })
-    .filter((m) => m.name.length > 0)
-    .slice(0, 20); // Limit to 20 members
+    .filter((m) => m.name && m.name.length > 1)
+    .slice(0, 25);
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
