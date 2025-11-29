@@ -14,8 +14,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Users, Clock, FileText, ExternalLink, GraduationCap, Mail, Phone, Plus } from "lucide-react";
+import { BookOpen, Users, Clock, FileText, ExternalLink, GraduationCap, Mail, Phone, Plus, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { AddNoteForm } from "./AddNoteForm";
@@ -59,6 +64,7 @@ export function StudyPortal({ notes, faculty, nextClass, userRole }: StudyPortal
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [selectedFaculty, setSelectedFaculty] = useState<Faculty | null>(null);
+  const [isOpen, setIsOpen] = useState(true);
   const isLecturer = userRole === "lecturer";
   
   const notesBySubject = notes.reduce((acc, note) => {
@@ -86,13 +92,20 @@ export function StudyPortal({ notes, faculty, nextClass, userRole }: StudyPortal
   return (
     <>
       <Card className="backdrop-blur-sm bg-card/90">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            Study Portal
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CardHeader className="pb-3">
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                Study Portal
+              </CardTitle>
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+              />
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="space-y-4">
           <div className="rounded-md border bg-primary/5 p-3">
             <div className="flex items-start gap-2">
               <Clock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
