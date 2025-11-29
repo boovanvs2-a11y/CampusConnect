@@ -192,6 +192,7 @@ export default function Home() {
             <ClubsCarousel clubs={mockClubs} userRole={user?.role || "student"} />
             <ConnectSection clubs={mockConnectClubs} />
             <DiscussSection discussions={mockDiscussions} />
+            <WhatsAppSummarizer />
           </div>
 
           <div className={`${viewMode === "desktop" ? "lg:col-span-4" : "col-span-1"} space-y-4`}>
@@ -201,7 +202,6 @@ export default function Home() {
               </div>
               <SocializeSection posts={mockPosts} />
             </div>
-            <WhatsAppSummarizer />
             <CompactEventsList events={mockEvents} />
             <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
           </div>
