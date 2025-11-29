@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageCircle, Plus, Loader } from "lucide-react";
+import { MessageCircle, Plus, Loader, Share2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,7 +114,10 @@ export function WhatsAppSummarizer() {
     <Card className="backdrop-blur-sm bg-card/90">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Group Sumarise</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Share2 className="h-5 w-5 text-primary" />
+            Group Sumarise
+          </CardTitle>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
