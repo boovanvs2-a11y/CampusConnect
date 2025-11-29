@@ -291,6 +291,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Alias: publish = setup (make club live)
+  app.patch("/api/clubs/:id/publish", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const club = await storage.getClubById(req.params.id);
+      if (!club || club.creatorId !== user.id) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      if (club.status !== "approved") {
+        return res.status(400).json({ error: "Club must be approved before publishing" });
+      }
+
+      const updatedClub = await storage.updateClub(req.params.id, {
+        description: req.body.description,
+        category: req.body.category,
+        status: "live",
+        isSetup: true,
+      });
+
+      res.json(updatedClub);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to publish club" });
+    }
+  });
+
   // Submit draft club for approval
   app.patch("/api/clubs/:id/submit", async (req: Request & { session?: any }, res) => {
     try {
