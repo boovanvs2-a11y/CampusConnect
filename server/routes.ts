@@ -234,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: req.body.description,
         category: req.body.category,
         creatorId: user.id,
-        status: "draft", // Students' clubs start as draft for setup
+        status: "pending", // Students' clubs submitted for principal approval
         approvedBy: undefined,
         createdAt: new Date().toISOString(),
       });
@@ -245,7 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's draft clubs
+  // Get user's draft/pending clubs
   app.get("/api/clubs/my-drafts", async (req: Request & { session?: any }, res) => {
     try {
       const user = await storage.getUser(req.session?.userId);
@@ -254,8 +254,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const allClubs = await storage.getClubs(false);
-      const myDrafts = allClubs.filter((c) => c.creatorId === user.id && c.status === "draft");
-      res.json(myDrafts);
+      const myClubs = allClubs.filter((c) => c.creatorId === user.id && c.status !== "approved");
+      res.json(myClubs);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch drafts" });
     }
