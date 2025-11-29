@@ -218,7 +218,9 @@ export function StudyPortal({ notes, faculty, nextClass, userRole }: StudyPortal
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        </CardContent>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
 
       {selectedFaculty && (
