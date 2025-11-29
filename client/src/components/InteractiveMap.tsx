@@ -119,8 +119,8 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
       mapInstanceRef.current = map;
       leafletLoadedRef.current = true;
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors",
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         maxZoom: 19,
       }).addTo(map);
 
@@ -157,7 +157,7 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
       };
 
       const customIcon = L.divIcon({
-        html: `<div class="flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-cyan-500 shadow-lg text-xl cursor-pointer hover:scale-110 transition-transform" style="border-color: hsl(188, 97%, 35%); box-shadow: 0 2px 8px rgba(0,0,0,0.2);">${getIcon()}</div>`,
+        html: `<div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 border-2 border-cyan-500 shadow-lg text-xl cursor-pointer hover:scale-110 transition-transform" style="border-color: hsl(188, 97%, 35%); background: #1f2937; box-shadow: 0 2px 8px rgba(0,0,0,0.6);">${getIcon()}</div>`,
         iconSize: [40, 40],
         className: "",
       });
@@ -306,9 +306,9 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
 
             <div
               ref={mapRef}
-              className="relative h-64 rounded-md overflow-hidden border-2 border-primary/20 bg-background"
+              className="relative h-64 rounded-md overflow-hidden border-2 border-primary/20 bg-gray-950"
               data-testid="map-container"
-              style={{ minHeight: "16rem" }}
+              style={{ minHeight: "16rem", backgroundColor: "#030712" }}
             />
 
             {selectedLocation && (
