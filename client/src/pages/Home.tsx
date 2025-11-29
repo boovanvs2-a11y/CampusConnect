@@ -223,18 +223,12 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-0 sm:h-14 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <svg className="h-7 w-7 flex-shrink-0" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Left circle - Purple */}
-              <circle cx="10" cy="12" r="7" stroke="#a855f7" strokeWidth="1.5" fill="none" />
-              {/* Right circle - Cyan */}
-              <circle cx="22" cy="12" r="7" stroke="#06b6d4" strokeWidth="1.5" fill="none" />
-              {/* Intersection fill - Common area with pattern */}
-              <defs>
-                <pattern id="commonPattern" patternUnits="userSpaceOnUse" width="2" height="2">
-                  <line x1="0" y1="0" x2="2" y2="2" stroke="#a855f7" strokeWidth="0.5" opacity="0.8" />
-                </pattern>
-              </defs>
-              <ellipse cx="16" cy="12" rx="4" ry="7" fill="url(#commonPattern)" />
-              <ellipse cx="16" cy="12" rx="4" ry="7" fill="#7c3aed" opacity="0.5" />
+              {/* Left circle - White */}
+              <circle cx="10" cy="12" r="7" stroke="white" strokeWidth="1.5" fill="none" />
+              {/* Right circle - White */}
+              <circle cx="22" cy="12" r="7" stroke="white" strokeWidth="1.5" fill="none" />
+              {/* Intersection fill - Common area with white */}
+              <ellipse cx="16" cy="12" rx="4" ry="7" fill="white" />
             </svg>
             <h1 className="text-base sm:text-lg font-bold" data-testid="text-app-title">
               CampusConnect
