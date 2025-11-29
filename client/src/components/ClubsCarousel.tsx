@@ -292,7 +292,38 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
                   {isSubmitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
                   Submit Club
                 </Button>
-                
+
+                {draftClubs.filter((c: any) => c.status === "approved").length > 0 && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="text-sm font-semibold mb-2">Approved - Ready to Setup</h4>
+                    <p className="text-xs text-muted-foreground mb-3">Approved by principal, complete setup to go live</p>
+                    <div className="space-y-2">
+                      {draftClubs.filter((c: any) => c.status === "approved").map((club: any) => (
+                        <div
+                          key={club.id}
+                          className="p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-2"
+                          data-testid={`card-approved-club-inline-${club.id}`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-semibold truncate">{club.name}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
+                            <p className="text-xs text-primary font-medium mt-1">✓ Approved by Principal</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => openSetupDialog(club.id, club.description || "", club.category || "")}
+                            disabled={isSubmitting}
+                            data-testid={`button-setup-approved-inline-${club.id}`}
+                            className="flex-shrink-0"
+                          >
+                            Setup
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </DialogContent>
           </Dialog>
@@ -303,42 +334,6 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
           <p className="text-xs text-muted-foreground">Draft clubs and submit for approval.</p>
         </CardContent>
       </Card>
-
-
-      {draftClubs.filter((c: any) => c.status === "approved").length > 0 && (
-        <Card className="backdrop-blur-sm bg-card/90">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Approved - Ready to Setup</CardTitle>
-            <p className="text-xs text-muted-foreground">Approved by principal, complete setup to go live</p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {draftClubs.filter((c: any) => c.status === "approved").map((club: any) => (
-              <div
-                key={club.id}
-                className="p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-2"
-                data-testid={`card-approved-club-${club.id}`}
-              >
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold truncate">{club.name}</h4>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
-                  <p className="text-xs text-primary font-medium mt-1">✓ Approved by Principal</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => openSetupDialog(club.id, club.description || "", club.category || "")}
-                  disabled={isSubmitting}
-                  data-testid={`button-setup-approved-${club.id}`}
-                  className="flex-shrink-0"
-                >
-                  Setup
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
       <Dialog open={isSetupOpen} onOpenChange={setIsSetupOpen}>
         <DialogContent data-testid="dialog-setup-club">
           <DialogHeader>
