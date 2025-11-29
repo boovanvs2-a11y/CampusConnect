@@ -298,7 +298,7 @@ export default function Home() {
                   <AISidebar />
                 </div>
               )}
-              <SocializeSection posts={mockPosts} />
+              <SocializeSection currentUserId={user?.id} users={{ [user?.id || ""]: { username: user?.username || "You" } }} />
             </div>
             <CompactEventsList events={mockEvents} />
             <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />

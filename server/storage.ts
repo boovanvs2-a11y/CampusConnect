@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Location, type Announcement, type Club, type StudentProfile, type InsertStudentProfile, type ClubMember, type Event, type EventAttendee, type StudentProject, type Note, type WhatsappGroup } from "@shared/schema";
+import { type User, type InsertUser, type Location, type Announcement, type Club, type StudentProfile, type InsertStudentProfile, type ClubMember, type Event, type EventAttendee, type StudentProject, type Note, type WhatsappGroup, type Post, type InsertPost } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -27,6 +27,8 @@ export interface IStorage {
   getClubMessages(clubId: string): Promise<any[]>;
   getWhatsappGroups(): Promise<WhatsappGroup[]>;
   createWhatsappGroup(group: any): Promise<WhatsappGroup>;
+  getPosts(): Promise<Post[]>;
+  createPost(post: InsertPost): Promise<Post>;
 }
 
 export class MemStorage implements IStorage {
@@ -39,6 +41,7 @@ export class MemStorage implements IStorage {
   private clubMessages: Map<string, any[]>;
   private studentProfiles: Map<string, StudentProfile>;
   private whatsappGroups: Map<string, WhatsappGroup>;
+  private posts: Map<string, Post>;
 
   constructor() {
     this.users = new Map();
@@ -50,6 +53,7 @@ export class MemStorage implements IStorage {
     this.clubMessages = new Map();
     this.studentProfiles = new Map();
     this.whatsappGroups = new Map();
+    this.posts = new Map();
     this.initializeDefaultLocations();
     this.initializeDefaultUsers();
     this.initializeDefaultAnnouncements();
@@ -386,6 +390,24 @@ export class MemStorage implements IStorage {
     } as WhatsappGroup;
     this.whatsappGroups.set(id, newGroup);
     return newGroup;
+  }
+
+  async getPosts(): Promise<Post[]> {
+    return Array.from(this.posts.values());
+  }
+
+  async createPost(post: InsertPost): Promise<Post> {
+    const id = randomUUID();
+    const newPost: Post = {
+      id,
+      authorId: post.authorId,
+      content: post.content,
+      image: post.image,
+      likes: 0,
+      createdAt: new Date().toISOString(),
+    } as Post;
+    this.posts.set(id, newPost);
+    return newPost;
   }
 }
 

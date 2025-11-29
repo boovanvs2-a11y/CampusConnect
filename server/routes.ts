@@ -580,6 +580,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Posts routes
+  app.get("/api/posts", async (_req, res) => {
+    try {
+      const posts = await storage.getPosts();
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch posts" });
+    }
+  });
+
+  app.post("/api/posts", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const { content, image } = req.body;
+      if (!content || !content.trim()) {
+        return res.status(400).json({ error: "Content is required" });
+      }
+
+      const post = await storage.createPost({
+        authorId: user.id,
+        content: content.trim(),
+        image: image || undefined,
+        createdAt: new Date().toISOString(),
+      });
+
+      res.status(201).json(post);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create post" });
+    }
+  });
+
   // Print Service route
   app.post("/api/print-request", async (req: Request & { session?: any }, res) => {
     try {
