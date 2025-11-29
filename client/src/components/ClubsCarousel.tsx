@@ -292,6 +292,25 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
                   {isSubmitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
                   Submit Club
                 </Button>
+                
+                {draftClubs.filter((c: any) => c.status !== "approved").length > 0 && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="text-xs font-semibold mb-3">Your Pending Submissions</h4>
+                    <div className="space-y-2">
+                      {draftClubs.filter((c: any) => c.status !== "approved").map((club: any) => (
+                        <div
+                          key={club.id}
+                          className="p-2 rounded border bg-muted/20 text-xs"
+                          data-testid={`card-pending-club-inline-${club.id}`}
+                        >
+                          <p className="font-medium truncate">{club.name}</p>
+                          <p className="text-muted-foreground line-clamp-1">{club.description}</p>
+                          <p className="text-muted-foreground text-xs mt-1">Awaiting principal review</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </DialogContent>
           </Dialog>
@@ -303,28 +322,6 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
         </CardContent>
       </Card>
 
-      {draftClubs.filter((c: any) => c.status !== "approved").length > 0 && (
-        <Card className="backdrop-blur-sm bg-card/90">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Pending Approval</CardTitle>
-            <p className="text-xs text-muted-foreground">Awaiting principal review</p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {draftClubs.filter((c: any) => c.status !== "approved").map((club: any) => (
-              <div
-                key={club.id}
-                className="p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-2"
-                data-testid={`card-pending-club-${club.id}`}
-              >
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold truncate">{club.name}</h4>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
 
       {draftClubs.filter((c: any) => c.status === "approved").length > 0 && (
         <Card className="backdrop-blur-sm bg-card/90">
