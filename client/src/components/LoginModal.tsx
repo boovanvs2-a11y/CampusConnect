@@ -206,15 +206,6 @@ export function LoginModal({ open, onLoginSuccess }: LoginModalProps) {
               />
             </div>
 
-            {/* Demo Credentials */}
-            <div className="rounded-lg bg-primary/5 p-3 border border-primary/20">
-              <p className="text-xs font-medium text-foreground mb-1.5">
-                Demo Credentials
-              </p>
-              <p className="text-xs text-muted-foreground font-mono">
-                {roleCredentials[selectedRole].hint}
-              </p>
-            </div>
           </div>
 
           {/* Login Button */}
