@@ -45,31 +45,40 @@ export function AnnouncementsSection({ announcements, userRole }: AnnouncementsS
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3 flex items-center justify-between gap-2">
-          <div className="flex-1">
-            <CollapsibleTrigger className="flex items-center gap-2 w-full">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-announcement-accent" />
-                Announcements
-              </CardTitle>
-              <ChevronDown
-                className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${isOpen ? "rotate-180" : ""}`}
-              />
-            </CollapsibleTrigger>
-          </div>
-          {isPrincipal && (
-            <PostAnnouncementForm>
+        <CardHeader className="pb-3 flex items-center justify-between">
+          <CollapsibleTrigger className="flex-1">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-announcement-accent" />
+              Announcements
+            </CardTitle>
+          </CollapsibleTrigger>
+          <div className="flex items-center gap-1">
+            <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                title="Add announcement"
-                data-testid="button-add-announcement"
+                data-testid="button-toggle-announcements"
               >
-                <Plus className="h-4 w-4" />
+                <ChevronDown
+                  className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+                />
               </Button>
-            </PostAnnouncementForm>
-          )}
+            </CollapsibleTrigger>
+            {isPrincipal && (
+              <PostAnnouncementForm>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  title="Add announcement"
+                  data-testid="button-add-announcement"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </PostAnnouncementForm>
+            )}
+          </div>
         </CardHeader>
         {isOpen && (
           <CardHeader className="pt-0 pb-2">
