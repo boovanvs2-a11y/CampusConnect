@@ -229,7 +229,7 @@ export function WhatsAppSummarizer() {
       <CardContent className="space-y-3">
             {groups.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-4">
-                No groups yet. Click + to paste a WhatsApp chat.
+                No groups yet. Click + to add one.
               </p>
             ) : (
               groups.map((group: GroupSummary) => (
