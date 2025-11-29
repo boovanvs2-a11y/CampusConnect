@@ -20,6 +20,7 @@ export interface IStorage {
   getClubById(id: string): Promise<Club | undefined>;
   createClub(club: any): Promise<Club>;
   updateClubStatus(id: string, status: string, approvedBy?: string): Promise<Club | undefined>;
+  updateClub(id: string, updates: Partial<Club>): Promise<Club | undefined>;
   getPendingClubs(): Promise<Club[]>;
   getStudentProfile(userId: string): Promise<StudentProfile | undefined>;
   getClubMembers(clubId: string): Promise<ClubMember[]>;
@@ -328,6 +329,14 @@ export class MemStorage implements IStorage {
     const club = this.clubs.get(id);
     if (!club) return undefined;
     const updated = { ...club, status, approvedBy: approvedBy || club.approvedBy };
+    this.clubs.set(id, updated);
+    return updated;
+  }
+
+  async updateClub(id: string, updates: Partial<Club>): Promise<Club | undefined> {
+    const club = this.clubs.get(id);
+    if (!club) return undefined;
+    const updated = { ...club, ...updates };
     this.clubs.set(id, updated);
     return updated;
   }

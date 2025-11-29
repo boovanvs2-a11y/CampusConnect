@@ -191,6 +191,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Setup a draft club with details
+  app.patch("/api/clubs/:id/setup", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const club = await storage.getClubById(req.params.id);
+      if (!club || club.creatorId !== user.id) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const updatedClub = await storage.updateClub(req.params.id, {
+        description: req.body.description,
+        category: req.body.category,
+        isSetup: true,
+      });
+
+      res.json(updatedClub);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to complete setup" });
+    }
+  });
+
   // Submit draft club for approval
   app.patch("/api/clubs/:id/submit", async (req: Request & { session?: any }, res) => {
     try {
