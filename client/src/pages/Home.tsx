@@ -170,7 +170,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-4">
         <div className={`grid gap-4 ${viewMode === "desktop" ? "grid-cols-1 lg:grid-cols-12" : "grid-cols-1"}`}>
           {user?.role === "student" && (
-            <div className="lg:col-span-12 space-y-3">
+            <div className={`${viewMode === "desktop" ? "lg:col-span-12" : "col-span-1"} space-y-3`}>
               <ApprovedClubsNotification />
               <RejectedClubsNotification />
             </div>
@@ -178,9 +178,11 @@ export default function Home() {
           
           <div className={`${viewMode === "desktop" ? "lg:col-span-3" : "col-span-1"} space-y-4`}>
             <div className="relative">
-              <div className="absolute -left-12 top-0 z-50">
-                <CalendarSidebar />
-              </div>
+              {viewMode === "desktop" && (
+                <div className="absolute -left-12 top-0 z-50">
+                  <CalendarSidebar />
+                </div>
+              )}
               <AnnouncementsSection announcements={announcements} />
             </div>
             {user?.role === "principal" && <PrincipalPanel />}
@@ -197,9 +199,11 @@ export default function Home() {
 
           <div className={`${viewMode === "desktop" ? "lg:col-span-4" : "col-span-1"} space-y-4`}>
             <div className="relative">
-              <div className="absolute -right-12 top-0 z-50">
-                <AISidebar />
-              </div>
+              {viewMode === "desktop" && (
+                <div className="absolute -right-12 top-0 z-50">
+                  <AISidebar />
+                </div>
+              )}
               <SocializeSection posts={mockPosts} />
             </div>
             <CompactEventsList events={mockEvents} />
