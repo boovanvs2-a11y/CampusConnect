@@ -21,6 +21,95 @@ import { useQuery } from "@tanstack/react-query";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
 import sportsClubBanner from "@assets/generated_images/sports_club_banner_image.png";
 
+// Class schedule based on RNSIT timetable
+const classSchedule: Record<number, Array<{ startTime: string; endTime: string; course: string; location: string }>> = {
+  1: [ // Monday
+    { startTime: "09:30", endTime: "10:20", course: "Data Structures", location: "Block A, Room 101" },
+    { startTime: "10:20", endTime: "11:10", course: "Web Development", location: "Lab 1" },
+    { startTime: "11:10", endTime: "12:00", course: "Database Systems", location: "Block B, Room 205" },
+    { startTime: "12:00", endTime: "13:00", course: "Computer Networks", location: "Block C, Room 310" },
+    { startTime: "14:00", endTime: "14:50", course: "Advanced Algorithms", location: "Block A, Room 305" },
+    { startTime: "14:50", endTime: "15:40", course: "Operating Systems", location: "Lab 2" },
+    { startTime: "15:40", endTime: "16:30", course: "Machine Learning", location: "Block D, Room 401" },
+    { startTime: "16:45", endTime: "17:35", course: "Software Engineering", location: "Block E, Room 502" },
+  ],
+  2: [ // Tuesday
+    { startTime: "09:30", endTime: "10:20", course: "Linear Algebra", location: "Block A, Room 102" },
+    { startTime: "10:20", endTime: "11:10", course: "Discrete Mathematics", location: "Block B, Room 206" },
+    { startTime: "11:10", endTime: "12:00", course: "Programming Lab", location: "Lab 1" },
+    { startTime: "12:00", endTime: "13:00", course: "Web Technologies", location: "Block C, Room 311" },
+    { startTime: "14:00", endTime: "14:50", course: "Cloud Computing", location: "Block A, Room 306" },
+    { startTime: "14:50", endTime: "15:40", course: "Cybersecurity", location: "Lab 3" },
+    { startTime: "15:40", endTime: "16:30", course: "AI Fundamentals", location: "Block D, Room 402" },
+    { startTime: "16:45", endTime: "17:35", course: "Project Work", location: "Block E, Room 503" },
+  ],
+  3: [ // Wednesday
+    { startTime: "09:30", endTime: "10:20", course: "Calculus", location: "Block A, Room 103" },
+    { startTime: "10:20", endTime: "11:10", course: "Probability Theory", location: "Block B, Room 207" },
+    { startTime: "11:10", endTime: "12:00", course: "Database Lab", location: "Lab 2" },
+    { startTime: "12:00", endTime: "13:00", course: "Computer Architecture", location: "Block C, Room 312" },
+    { startTime: "14:00", endTime: "14:50", course: "Graphics Programming", location: "Block A, Room 307" },
+    { startTime: "14:50", endTime: "15:40", course: "Network Lab", location: "Lab 1" },
+    { startTime: "15:40", endTime: "16:30", course: "IoT Applications", location: "Block D, Room 403" },
+    { startTime: "16:45", endTime: "17:35", course: "Seminar", location: "Block E, Room 504" },
+  ],
+  4: [ // Thursday
+    { startTime: "09:30", endTime: "10:20", course: "Physics", location: "Block A, Room 104" },
+    { startTime: "10:20", endTime: "11:10", course: "Chemistry Fundamentals", location: "Block B, Room 208" },
+    { startTime: "11:10", endTime: "12:00", course: "Physics Lab", location: "Lab 3" },
+    { startTime: "12:00", endTime: "13:00", course: "Advanced Java", location: "Block C, Room 313" },
+    { startTime: "14:00", endTime: "14:50", course: "Mobile Development", location: "Block A, Room 308" },
+    { startTime: "14:50", endTime: "15:40", course: "Mobile Lab", location: "Lab 4" },
+    { startTime: "15:40", endTime: "16:30", course: "Blockchain Basics", location: "Block D, Room 404" },
+    { startTime: "16:45", endTime: "17:35", course: "Guest Lecture", location: "Auditorium" },
+  ],
+  5: [ // Friday
+    { startTime: "09:30", endTime: "10:20", course: "Technical Writing", location: "Block A, Room 105" },
+    { startTime: "10:20", endTime: "11:10", course: "Communication Skills", location: "Block B, Room 209" },
+    { startTime: "11:10", endTime: "12:00", course: "Soft Skills Lab", location: "Lab 1" },
+    { startTime: "12:00", endTime: "13:00", course: "Capstone Project", location: "Block C, Room 314" },
+    { startTime: "14:00", endTime: "14:50", course: "Internship Prep", location: "Block A, Room 309" },
+    { startTime: "14:50", endTime: "15:40", course: "Interview Skills", location: "Lab 5" },
+    { startTime: "15:40", endTime: "16:30", course: "Career Guidance", location: "Block D, Room 405" },
+    { startTime: "16:45", endTime: "17:35", course: "Tech Talk", location: "Block E, Room 505" },
+  ],
+};
+
+function getNextClass() {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+  const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+  // No classes on Saturday (6) and Sunday (0)
+  if (dayOfWeek === 0 || dayOfWeek === 6) {
+    return {
+      course: "No Classes Today",
+      time: "Weekend",
+      location: "Enjoy your break!",
+    };
+  }
+
+  const todaySchedule = classSchedule[dayOfWeek] || [];
+  
+  // Find next class
+  for (const cls of todaySchedule) {
+    if (cls.startTime > currentTime) {
+      return {
+        course: cls.course,
+        time: `${cls.startTime} - ${cls.endTime}`,
+        location: cls.location,
+      };
+    }
+  }
+
+  // No more classes today
+  return {
+    course: "No More Classes",
+    time: "Today's classes are over",
+    location: "See you tomorrow!",
+  };
+}
+
 export default function Home() {
   const [user, setUser] = useState<{ id: string; username: string; role: string } | null>(null);
   const [viewMode, setViewMode] = useState<"mobile" | "desktop">(() => {
@@ -74,11 +163,15 @@ export default function Home() {
     { id: "4", name: "Prof. David Kim", department: "Engineering", status: "offline" as const, email: "dkim@rnsit.ac.in", phone: "+91-9876543213" },
   ];
 
-  const mockNextClass = {
-    course: "Advanced Algorithms",
-    time: "2:00 PM - 3:30 PM",
-    location: "Block A, Room 305",
-  };
+  const [nextClass, setNextClass] = useState(() => getNextClass());
+
+  // Update next class every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNextClass(getNextClass());
+    }, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
 
   const mockClubs = [
     { id: "1", name: "Tech Innovation", description: "Build projects, attend hackathons.", members: 234, category: "Technology", banner: techClubBanner },
@@ -186,7 +279,7 @@ export default function Home() {
               <AnnouncementsSection announcements={announcements} userRole={user?.role} />
             </div>
             {user?.role === "principal" && <PrincipalPanel />}
-            <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={mockNextClass} />
+            <StudyPortal notes={mockNotes} faculty={mockFaculty} nextClass={nextClass} />
             <PrintService />
           </div>
 
