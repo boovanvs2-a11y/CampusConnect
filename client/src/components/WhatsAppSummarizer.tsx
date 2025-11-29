@@ -117,7 +117,7 @@ export function WhatsAppSummarizer() {
           <div className="flex items-center justify-between w-full">
             <CollapsibleTrigger className="flex items-center gap-2 flex-1">
               <MessageCircle className="h-5 w-5 text-primary" />
-              <span className="text-lg font-semibold">Group Vibes</span>
+              <span className="text-lg font-semibold">Group Sunrise</span>
               <ChevronDown
                 className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${isOpen ? "rotate-180" : ""}`}
               />
