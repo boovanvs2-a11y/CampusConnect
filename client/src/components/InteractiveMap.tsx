@@ -119,9 +119,9 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
       mapInstanceRef.current = map;
       leafletLoadedRef.current = true;
 
-      // Use CartoDB Voyager for colorful, vibrant map
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      // Use standard OpenStreetMap tiles (reliable and colorful)
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       }).addTo(map);
 
