@@ -175,6 +175,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's draft clubs
+  app.get("/api/clubs/my-drafts", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const allClubs = await storage.getClubs(false);
+      const myDrafts = allClubs.filter((c) => c.creatorId === user.id && c.status === "draft");
+      res.json(myDrafts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch drafts" });
+    }
+  });
+
   // Submit draft club for approval
   app.patch("/api/clubs/:id/submit", async (req: Request & { session?: any }, res) => {
     try {

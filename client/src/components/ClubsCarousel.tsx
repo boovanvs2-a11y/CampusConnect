@@ -12,11 +12,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Loader } from "lucide-react";
+import { Plus, Loader, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type Club = {
   id: string;
@@ -35,11 +35,13 @@ type ClubsCarouselProps = {
 export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsCarouselProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [clubName, setClubName] = useState("");
   const [clubCategory, setClubCategory] = useState("");
   const [clubDesc, setClubDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitInProgress, setSubmitInProgress] = useState<string | null>(null);
   const [joinConfirmOpen, setJoinConfirmOpen] = useState(false);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [joinedClubs, setJoinedClubs] = useState<Set<string>>(new Set());
@@ -48,6 +50,18 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
   const { data: approvedClubs = [] } = useQuery({
     queryKey: ["/api/clubs"],
   }) as any;
+
+  // Fetch user's draft clubs
+  const { data: draftClubs = [] } = useQuery({
+    queryKey: ["/api/clubs/my-drafts"],
+    queryFn: async () => {
+      const res = await fetch("/api/clubs/my-drafts", {
+        credentials: "include",
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
 
   // Combine real approved clubs with mock clubs for display
   const displayClubs = approvedClubs && approvedClubs.length > 0 ? approvedClubs : mockClubs;
@@ -79,6 +93,8 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
       setClubCategory("");
       setClubDesc("");
       setIsDialogOpen(false);
+      // Refresh draft clubs list
+      queryClient.invalidateQueries({ queryKey: ["/api/clubs/my-drafts"] });
     } catch (error) {
       toast({
         title: "Creation Failed",
@@ -87,6 +103,26 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitForApproval = async (clubId: string) => {
+    setSubmitInProgress(clubId);
+    try {
+      await apiRequest("PATCH", `/api/clubs/${clubId}/submit`, {});
+      toast({
+        title: "Submitted!",
+        description: "Club submitted for principal approval.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/clubs/my-drafts"] });
+    } catch (error) {
+      toast({
+        title: "Submission Failed",
+        description: "Failed to submit club. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitInProgress(null);
     }
   };
 
@@ -207,7 +243,7 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
                   data-testid="button-submit-club"
                 >
                   {isSubmitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
-                  Submit for Approval
+                  Create Draft
                 </Button>
               </div>
             </DialogContent>
@@ -215,6 +251,46 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
           </div>
         </CardHeader>
       </Card>
+
+      {draftClubs.length > 0 && (
+        <Card className="backdrop-blur-sm bg-card/90">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">My Drafts</CardTitle>
+            <p className="text-xs text-muted-foreground">Clubs waiting to be submitted for approval</p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {draftClubs.map((club: any) => (
+              <div
+                key={club.id}
+                className="p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-2"
+                data-testid={`card-draft-club-${club.id}`}
+              >
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold truncate">{club.name}</h4>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => handleSubmitForApproval(club.id)}
+                  disabled={submitInProgress === club.id}
+                  data-testid={`button-submit-draft-${club.id}`}
+                  className="flex-shrink-0"
+                >
+                  {submitInProgress === club.id ? (
+                    <Loader className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <>
+                      <Send className="h-3 w-3 mr-1" />
+                      Submit
+                    </>
+                  )}
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }
