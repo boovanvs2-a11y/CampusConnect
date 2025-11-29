@@ -285,7 +285,7 @@ export default function Home() {
           </div>
 
           <div className={`${viewMode === "desktop" ? "lg:col-span-5" : "col-span-1"} space-y-4`}>
-            <ClubsCarousel clubs={mockClubs} userRole={user?.role || "student"} />
+            <ClubsCarousel userRole={user?.role || "student"} />
             <ConnectSection />
             <DiscussSection discussions={mockDiscussions} />
             <WhatsAppSummarizer />
