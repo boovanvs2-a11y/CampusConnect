@@ -250,6 +250,43 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
           </Dialog>
           </div>
         </CardHeader>
+        <CardContent className="pt-0">
+          {displayClubs.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No clubs yet. Create one to get started!</p>
+          ) : (
+            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              {displayClubs.map((club: any) => (
+                <div
+                  key={club.id}
+                  className="p-3 rounded-lg border hover-elevate cursor-pointer bg-muted/30"
+                  onClick={() => handleViewClub(club)}
+                  data-testid={`card-club-list-${club.id}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold truncate">{club.name}</h4>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
+                      <span className="text-xs text-muted-foreground">{club.category || "General"}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleJoinConfirm(club);
+                      }}
+                      disabled={joinedClubs.has(club.id)}
+                      data-testid={`button-join-${club.id}`}
+                      className="flex-shrink-0"
+                    >
+                      {joinedClubs.has(club.id) ? "Joined" : "Join"}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {draftClubs.length > 0 && (
