@@ -55,9 +55,9 @@ const COLORS: ColorOption[] = [
   {
     name: "Orange",
     hue: 28,
-    saturation: 80,
+    saturation: 85,
     lightness: 52,
-    dark: { hue: 28, saturation: 80, lightness: 60 },
+    dark: { hue: 28, saturation: 85, lightness: 48 },
   },
   {
     name: "Pink",
