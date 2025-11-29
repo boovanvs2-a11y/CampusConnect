@@ -49,6 +49,7 @@ export const clubs = pgTable("clubs", {
   creatorId: varchar("creator_id").notNull(),
   status: varchar("status").notNull().default("pending"), // pending, approved, rejected
   approvedBy: varchar("approved_by"),
+  isSetup: boolean("is_setup").notNull().default(false),
   createdAt: text("created_at").notNull(),
 });
 

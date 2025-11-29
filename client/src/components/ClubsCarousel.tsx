@@ -28,20 +28,21 @@ type Club = {
 };
 
 type ClubsCarouselProps = {
-  clubs: Club[];
   userRole?: string;
 };
 
-export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsCarouselProps) {
+export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
   const [clubName, setClubName] = useState("");
   const [clubCategory, setClubCategory] = useState("");
   const [clubDesc, setClubDesc] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitInProgress, setSubmitInProgress] = useState<string | null>(null);
+  const [setupClubId, setSetupClubId] = useState<string | null>(null);
   const [joinConfirmOpen, setJoinConfirmOpen] = useState(false);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [joinedClubs, setJoinedClubs] = useState<Set<string>>(new Set());
@@ -63,14 +64,12 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
     },
   });
 
-  // Combine real approved clubs with mock clubs for display
-  const displayClubs = approvedClubs && approvedClubs.length > 0 ? approvedClubs : mockClubs;
 
   const handleCreateClub = async () => {
-    if (!clubName.trim() || !clubCategory.trim() || !clubDesc.trim()) {
+    if (!clubName.trim()) {
       toast({
-        title: "Fill All Fields",
-        description: "Please complete club details",
+        title: "Enter Club Name",
+        description: "Please enter a club name",
         variant: "destructive",
       });
       return;
@@ -80,19 +79,19 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
     try {
       await apiRequest("POST", "/api/clubs", {
         name: clubName,
-        description: clubDesc,
-        category: clubCategory,
+        description: "",
+        category: "",
       });
 
       toast({
         title: "Club Created!",
-        description: `${clubName} saved as draft. Set it up and submit for approval.`,
+        description: `${clubName} created. Now set it up with details.`,
       });
 
       setClubName("");
       setClubCategory("");
       setClubDesc("");
-      setIsDialogOpen(false);
+      setIsCreateOpen(false);
       // Refresh draft clubs list
       queryClient.invalidateQueries({ queryKey: ["/api/clubs/my-drafts"] });
     } catch (error) {
@@ -104,6 +103,51 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSetupClub = async () => {
+    if (!clubCategory.trim() || !clubDesc.trim()) {
+      toast({
+        title: "Fill All Fields",
+        description: "Please complete club details",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await apiRequest("PATCH", `/api/clubs/${setupClubId}/setup`, {
+        description: clubDesc,
+        category: clubCategory,
+      });
+
+      toast({
+        title: "Setup Complete!",
+        description: "Club is ready to submit for approval.",
+      });
+
+      setClubCategory("");
+      setClubDesc("");
+      setIsSetupOpen(false);
+      setSetupClubId(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/clubs/my-drafts"] });
+    } catch (error) {
+      toast({
+        title: "Setup Failed",
+        description: "Failed to complete setup. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openSetupDialog = (clubId: string, description: string, category: string) => {
+    setSetupClubId(clubId);
+    setClubDesc(description || "");
+    setClubCategory(category || "");
+    setIsSetupOpen(true);
   };
 
   const handleSubmitForApproval = async (clubId: string) => {
@@ -186,7 +230,7 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Campus Clubs</CardTitle>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="ghost"
@@ -201,7 +245,7 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
               <DialogHeader>
                 <DialogTitle>Create New Club</DialogTitle>
                 <DialogDescription>
-                  Create a draft club to set up. You can submit it for approval after setup is complete.
+                  Enter club name. You'll set up details next.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -215,6 +259,28 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
                     disabled={isSubmitting}
                   />
                 </div>
+                <Button
+                  onClick={handleCreateClub}
+                  disabled={isSubmitting}
+                  className="w-full"
+                  data-testid="button-submit-club"
+                >
+                  {isSubmitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
+                  Create Club
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isSetupOpen} onOpenChange={setIsSetupOpen}>
+            <DialogContent data-testid="dialog-setup-club">
+              <DialogHeader>
+                <DialogTitle>Complete Club Setup</DialogTitle>
+                <DialogDescription>
+                  Add details about your club. After setup, you can submit for approval.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Category</label>
                   <Input
@@ -237,13 +303,13 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
                   />
                 </div>
                 <Button
-                  onClick={handleCreateClub}
+                  onClick={handleSetupClub}
                   disabled={isSubmitting}
                   className="w-full"
-                  data-testid="button-submit-club"
+                  data-testid="button-complete-setup"
                 >
                   {isSubmitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
-                  Create Draft
+                  Complete Setup
                 </Button>
               </div>
             </DialogContent>
@@ -270,25 +336,38 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
               >
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-semibold truncate">{club.name}</h4>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{club.description || 'Not set up yet'}</p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => handleSubmitForApproval(club.id)}
-                  disabled={submitInProgress === club.id}
-                  data-testid={`button-submit-draft-${club.id}`}
-                  className="flex-shrink-0"
-                >
-                  {submitInProgress === club.id ? (
-                    <Loader className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <>
-                      <Send className="h-3 w-3 mr-1" />
-                      Submit
-                    </>
-                  )}
-                </Button>
+                {!club.isSetup ? (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => openSetupDialog(club.id, club.description || "", club.category || "")}
+                    disabled={isSubmitting}
+                    data-testid={`button-setup-draft-${club.id}`}
+                    className="flex-shrink-0"
+                  >
+                    Setup
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => handleSubmitForApproval(club.id)}
+                    disabled={submitInProgress === club.id}
+                    data-testid={`button-submit-draft-${club.id}`}
+                    className="flex-shrink-0"
+                  >
+                    {submitInProgress === club.id ? (
+                      <Loader className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <>
+                        <Send className="h-3 w-3 mr-1" />
+                        Submit
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             ))}
           </CardContent>
