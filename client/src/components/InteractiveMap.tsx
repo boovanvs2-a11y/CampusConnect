@@ -119,9 +119,10 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
       mapInstanceRef.current = map;
       leafletLoadedRef.current = true;
 
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 19,
+      // Use Stamen Terrain for colorful map with natural colors
+      L.tileLayer("https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png", {
+        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+        maxZoom: 18,
       }).addTo(map);
 
       const userIcon = L.divIcon({
