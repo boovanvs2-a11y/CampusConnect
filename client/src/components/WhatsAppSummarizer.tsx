@@ -114,22 +114,19 @@ export function WhatsAppSummarizer() {
     <Card className="backdrop-blur-sm bg-card/90">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-primary" />
-            Group Sumarise
-          </CardTitle>
+          <CardTitle className="text-lg">Group Sumarise</CardTitle>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 h-8"
-                data-testid="button-add-whatsapp"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </DialogTrigger>
-              <DialogContent data-testid="dialog-add-whatsapp" className="max-w-md">
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 h-8"
+              data-testid="button-add-whatsapp"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent data-testid="dialog-add-whatsapp" className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Add WhatsApp Group</DialogTitle>
                 </DialogHeader>
