@@ -72,7 +72,7 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
 
       toast({
         title: "Club Created!",
-        description: `${clubName} submitted for approval. Principal will review soon.`,
+        description: `${clubName} saved as draft. Set it up and submit for approval.`,
       });
 
       setClubName("");
@@ -165,7 +165,7 @@ export function ClubsCarousel({ clubs: mockClubs, userRole = "student" }: ClubsC
               <DialogHeader>
                 <DialogTitle>Create New Club</DialogTitle>
                 <DialogDescription>
-                  Submit a new club for approval. Principal will review and publish if approved.
+                  Create a draft club to set up. You can submit it for approval after setup is complete.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">

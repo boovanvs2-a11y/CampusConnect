@@ -162,8 +162,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const club = await storage.createClub({
         name: req.body.name,
         description: req.body.description,
+        category: req.body.category,
         creatorId: user.id,
-        status: "pending", // Students' clubs need approval
+        status: "draft", // Students' clubs start as draft for setup
         approvedBy: undefined,
         createdAt: new Date().toISOString(),
       });
@@ -171,6 +172,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(club);
     } catch (error) {
       res.status(400).json({ error: "Failed to create club" });
+    }
+  });
+
+  // Submit draft club for approval
+  app.patch("/api/clubs/:id/submit", async (req: Request & { session?: any }, res) => {
+    try {
+      const user = await storage.getUser(req.session?.userId);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const club = await storage.getClubById(req.params.id);
+      if (!club || club.creatorId !== user.id) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      const updatedClub = await storage.updateClubStatus(req.params.id, "pending", user.id);
+      if (!updatedClub) {
+        return res.status(404).json({ error: "Club not found" });
+      }
+
+      res.json(updatedClub);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to submit club" });
     }
   });
 
