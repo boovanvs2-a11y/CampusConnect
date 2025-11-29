@@ -301,6 +301,26 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
                   Submit Club
                 </Button>
 
+                {draftClubs.filter((c: any) => c.status === "pending").length > 0 && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="text-sm font-semibold mb-2">Pending Approval</h4>
+                    <p className="text-xs text-muted-foreground mb-3">Waiting for principal decision</p>
+                    <div className="space-y-2">
+                      {draftClubs.filter((c: any) => c.status === "pending").map((club: any) => (
+                        <div
+                          key={club.id}
+                          className="p-3 rounded-lg border bg-muted/30"
+                          data-testid={`card-pending-club-inline-${club.id}`}
+                        >
+                          <h4 className="text-sm font-semibold truncate">{club.name}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
+                          <p className="text-xs text-amber-600 font-medium mt-1">⏳ Pending</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {draftClubs.filter((c: any) => c.status === "approved").length > 0 && (
                   <div className="mt-6 pt-6 border-t">
                     <h4 className="text-sm font-semibold mb-2">Approved - Ready to Setup</h4>
@@ -327,6 +347,26 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
                           >
                             Setup
                           </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {draftClubs.filter((c: any) => c.status === "rejected").length > 0 && (
+                  <div className="mt-6 pt-6 border-t">
+                    <h4 className="text-sm font-semibold mb-2">Rejected</h4>
+                    <p className="text-xs text-muted-foreground mb-3">Principal did not approve these clubs</p>
+                    <div className="space-y-2">
+                      {draftClubs.filter((c: any) => c.status === "rejected").map((club: any) => (
+                        <div
+                          key={club.id}
+                          className="p-3 rounded-lg border bg-muted/30"
+                          data-testid={`card-rejected-club-inline-${club.id}`}
+                        >
+                          <h4 className="text-sm font-semibold truncate">{club.name}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
+                          <p className="text-xs text-destructive font-medium mt-1">✗ Rejected</p>
                         </div>
                       ))}
                     </div>
