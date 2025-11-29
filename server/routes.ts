@@ -6,18 +6,34 @@ import nodemailer from "nodemailer";
 
 const sendPrintEmail = async (filename: string, userEmail?: string) => {
   try {
-    // Create a transporter using Gmail
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailPassword = process.env.GMAIL_PASSWORD;
+
+    // Check if credentials are configured
+    if (!gmailUser || !gmailPassword || gmailPassword === "placeholder") {
+      console.warn("⚠️  Gmail credentials not configured. Print email will not be sent.");
+      console.warn("Please set GMAIL_USER and GMAIL_PASSWORD environment variables.");
+      return false;
+    }
+
+    console.log(`📧 Preparing to send print email from: ${gmailUser}`);
+
+    // Create a transporter using Gmail with App Password
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.GMAIL_USER || "campusconnect.service@gmail.com",
-        pass: process.env.GMAIL_PASSWORD || "placeholder",
+        user: gmailUser,
+        pass: gmailPassword,
       },
     });
 
+    // Verify transporter connection
+    await transporter.verify();
+    console.log("✓ Gmail transporter verified and ready");
+
     // Email to print service (ankushrampa@gmail.com)
     const mailOptions = {
-      from: process.env.GMAIL_USER || "campusconnect.service@gmail.com",
+      from: gmailUser,
       to: "ankushrampa@gmail.com",
       subject: `New Print Request from ${userEmail || "Anonymous"}`,
       html: `
@@ -29,14 +45,19 @@ const sendPrintEmail = async (filename: string, userEmail?: string) => {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log(`Print email sent successfully for: ${filename}`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✓ Print email sent successfully! Message ID: ${info.messageId}`);
+    console.log(`  To: ankushrampa@gmail.com`);
+    console.log(`  File: ${filename}`);
+    console.log(`  From: ${userEmail}`);
     return true;
   } catch (error) {
-    console.error("Failed to send print email:", error);
-    // Fallback: still log it so it's tracked
-    console.log(`Print request logged for: ${filename} from ${userEmail || "anonymous"}`);
-    return true; // Return true even if email fails so user isn't blocked
+    console.error("❌ Failed to send print email:", error);
+    if (error instanceof Error) {
+      console.error("Error details:", error.message);
+      console.error("Error code:", (error as any).code);
+    }
+    return false;
   }
 };
 
@@ -393,17 +414,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Log the print request with user email
-      console.log(`✉️  Print request from: ${userEmail}`);
-      console.log(`📄 File: ${filename}`);
+      console.log(`\n🖨️  ========== PRINT REQUEST ==========`);
+      console.log(`✉️  Requestor Email: ${userEmail}`);
+      console.log(`📄 Filename: ${filename}`);
       console.log(`👤 User: ${user?.username || "anonymous"}`);
-      console.log(`📧 Forwarding to ankushrampa@gmail.com...`);
+      console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
       
       // Send email to print service
       const emailSent = await sendPrintEmail(filename, userEmail);
       
       if (!emailSent) {
-        return res.status(500).json({ error: "Failed to process print request" });
+        console.error("❌ Email sending failed - Gmail credentials may not be configured");
+        return res.status(500).json({ 
+          error: "Failed to send to print service. Please check that Gmail is properly configured.",
+          details: "GMAIL_USER and GMAIL_PASSWORD environment variables may not be set"
+        });
       }
+      
+      console.log(`✓ Request processed and sent to ankushrampa@gmail.com`);
+      console.log(`====================================\n`);
       
       res.status(201).json({ 
         success: true, 
