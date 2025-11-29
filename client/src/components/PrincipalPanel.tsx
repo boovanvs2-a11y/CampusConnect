@@ -57,7 +57,7 @@ export function PrincipalPanel() {
 
       toast({
         title: "Club Approved",
-        description: "The club has been published and is now visible to all students.",
+        description: "Student can now complete setup to publish it in Connect.",
       });
 
       setPendingClubs(pendingClubs.filter((c) => c.id !== clubId));
