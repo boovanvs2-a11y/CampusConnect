@@ -115,7 +115,7 @@ export function SocializeSection({ currentUserId, users = {} }: SocializeSection
         <CardHeader className="pb-3">
           <CollapsibleTrigger className="flex items-center justify-between w-full">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Heart className="h-5 w-5 text-event-accent dark:text-event-accent" />
+              <Heart className="h-5 w-5 text-event-accent" />
               Socialize
             </CardTitle>
             <ChevronDown

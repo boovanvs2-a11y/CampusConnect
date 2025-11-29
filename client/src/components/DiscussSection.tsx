@@ -81,7 +81,7 @@ export function DiscussSection({ discussions }: DiscussSectionProps) {
         <CardHeader className="pb-3">
           <CollapsibleTrigger className="flex items-center justify-between w-full">
             <CardTitle className="text-lg flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-discussion-accent dark:text-discussion-accent" />
+              <MessageCircle className="h-5 w-5 text-discussion-accent" />
               Discuss
             </CardTitle>
             <ChevronDown

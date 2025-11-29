@@ -89,6 +89,11 @@ export default {
           DEFAULT: "hsl(var(--discussion-accent) / <alpha-value>)",
           foreground: "hsl(var(--discussion-accent-foreground) / <alpha-value>)",
         },
+        "announcement-accent": {
+          DEFAULT: "hsl(var(--announcement-accent) / <alpha-value>)",
+        },
+        "status-available": "hsl(var(--status-available) / <alpha-value>)",
+        "status-busy": "hsl(var(--status-busy) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
