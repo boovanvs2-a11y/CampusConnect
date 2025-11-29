@@ -228,7 +228,7 @@ export function WhatsAppSummarizer() {
       </CardHeader>
       <CardContent className="space-y-3">
         {groups.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-4">
+          <p className="text-xs text-muted-foreground">
             No groups yet. Click + to paste a WhatsApp chat.
           </p>
         ) : (
