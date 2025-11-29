@@ -307,7 +307,7 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
 
             <div
               ref={mapRef}
-              className="relative h-64 rounded-md overflow-hidden border-2 border-primary/20 bg-gray-950"
+              className="relative h-64 rounded-md overflow-hidden border-2 border-primary/20 bg-gray-950 z-0"
               data-testid="map-container"
               style={{ minHeight: "16rem", backgroundColor: "#030712" }}
             />
