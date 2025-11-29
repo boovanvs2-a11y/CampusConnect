@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Location, type Announcement, type Club, type StudentProfile, type InsertStudentProfile, type ClubMember, type Event, type EventAttendee, type StudentProject } from "@shared/schema";
+import { type User, type InsertUser, type Location, type Announcement, type Club, type StudentProfile, type InsertStudentProfile, type ClubMember, type Event, type EventAttendee, type StudentProject, type Note } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -14,6 +14,8 @@ export interface IStorage {
   searchLocations(query: string): Promise<Location[]>;
   getAnnouncements(): Promise<Announcement[]>;
   createAnnouncement(announcement: any): Promise<Announcement>;
+  getNotes(): Promise<Note[]>;
+  createNote(note: any): Promise<Note>;
   getClubs(onlyApproved?: boolean): Promise<Club[]>;
   getClubById(id: string): Promise<Club | undefined>;
   createClub(club: any): Promise<Club>;
@@ -28,6 +30,7 @@ export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private locations: Map<string, Location>;
   private announcements: Map<string, Announcement>;
+  private notes: Map<string, Note>;
   private clubs: Map<string, Club>;
   private clubMembers: Map<string, ClubMember[]>;
   private clubMessages: Map<string, any[]>;
@@ -37,6 +40,7 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.locations = new Map();
     this.announcements = new Map();
+    this.notes = new Map();
     this.clubs = new Map();
     this.clubMembers = new Map();
     this.clubMessages = new Map();
@@ -342,6 +346,17 @@ export class MemStorage implements IStorage {
 
   async getClubMessages(clubId: string): Promise<any[]> {
     return this.clubMessages.get(clubId) || [];
+  }
+
+  async getNotes(): Promise<Note[]> {
+    return Array.from(this.notes.values());
+  }
+
+  async createNote(note: any): Promise<Note> {
+    const id = randomUUID();
+    const newNote: Note = { ...note, id } as Note;
+    this.notes.set(id, newNote);
+    return newNote;
   }
 }
 
