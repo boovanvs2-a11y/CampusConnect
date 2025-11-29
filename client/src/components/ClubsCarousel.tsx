@@ -66,10 +66,10 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
 
 
   const handleCreateClub = async () => {
-    if (!clubName.trim()) {
+    if (!clubName.trim() || !clubCategory.trim() || !clubDesc.trim()) {
       toast({
-        title: "Enter Club Name",
-        description: "Please enter a club name",
+        title: "Fill All Fields",
+        description: "Please enter club name, category, and description",
         variant: "destructive",
       });
       return;
@@ -79,13 +79,13 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
     try {
       await apiRequest("POST", "/api/clubs", {
         name: clubName,
-        description: "",
-        category: "",
+        description: clubDesc,
+        category: clubCategory,
       });
 
       toast({
         title: "Club Created!",
-        description: `${clubName} created. Now set it up with details.`,
+        description: `${clubName} submitted for approval.`,
       });
 
       setClubName("");
@@ -248,7 +248,7 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
               <DialogHeader>
                 <DialogTitle>Create New Club</DialogTitle>
                 <DialogDescription>
-                  Enter club name. You'll set up details next.
+                  Fill in all details and submit for approval.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -262,28 +262,6 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
                     disabled={isSubmitting}
                   />
                 </div>
-                <Button
-                  onClick={handleCreateClub}
-                  disabled={isSubmitting}
-                  className="w-full"
-                  data-testid="button-submit-club"
-                >
-                  {isSubmitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
-                  Create Club
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isSetupOpen} onOpenChange={setIsSetupOpen}>
-            <DialogContent data-testid="dialog-setup-club">
-              <DialogHeader>
-                <DialogTitle>Complete Club Setup</DialogTitle>
-                <DialogDescription>
-                  Add details about your club. After setup, you can submit for approval.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Category</label>
                   <Input
@@ -306,17 +284,18 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
                   />
                 </div>
                 <Button
-                  onClick={handleSetupClub}
+                  onClick={handleCreateClub}
                   disabled={isSubmitting}
                   className="w-full"
-                  data-testid="button-complete-setup"
+                  data-testid="button-submit-club"
                 >
                   {isSubmitting && <Loader className="h-4 w-4 mr-2 animate-spin" />}
-                  Complete Setup
+                  Submit Club
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
+
           </div>
         </CardHeader>
         <CardContent className="pt-0">
@@ -324,73 +303,47 @@ export function ClubsCarousel({ userRole = "student" }: ClubsCarouselProps) {
         </CardContent>
       </Card>
 
-      {draftClubs.filter((c: any) => !c.isSetup).length > 0 && (
+      {draftClubs.filter((c: any) => c.status !== "approved").length > 0 && (
         <Card className="backdrop-blur-sm bg-card/90">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Needs Setup</CardTitle>
-            <p className="text-xs text-muted-foreground">Complete setup to enable submission</p>
+            <CardTitle className="text-lg">Pending Approval</CardTitle>
+            <p className="text-xs text-muted-foreground">Awaiting principal review</p>
           </CardHeader>
           <CardContent className="space-y-2">
-            {draftClubs.filter((c: any) => !c.isSetup).map((club: any) => (
+            {draftClubs.filter((c: any) => c.status !== "approved").map((club: any) => (
               <div
                 key={club.id}
                 className="p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-2"
-                data-testid={`card-draft-club-${club.id}`}
+                data-testid={`card-pending-club-${club.id}`}
               >
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-semibold truncate">{club.name}</h4>
-                  <p className="text-xs text-muted-foreground line-clamp-1">Awaiting setup</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => openSetupDialog(club.id, club.description || "", club.category || "")}
-                  disabled={isSubmitting}
-                  data-testid={`button-setup-draft-${club.id}`}
-                  className="flex-shrink-0"
-                >
-                  Setup
-                </Button>
               </div>
             ))}
           </CardContent>
         </Card>
       )}
 
-      {draftClubs.filter((c: any) => c.isSetup).length > 0 && (
+      {draftClubs.filter((c: any) => c.status === "approved").length > 0 && (
         <Card className="backdrop-blur-sm bg-card/90">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Ready to Submit</CardTitle>
-            <p className="text-xs text-muted-foreground">Submit for principal approval</p>
+            <CardTitle className="text-lg">Approved Clubs</CardTitle>
+            <p className="text-xs text-muted-foreground">Your clubs approved by principal</p>
           </CardHeader>
           <CardContent className="space-y-2">
-            {draftClubs.filter((c: any) => c.isSetup).map((club: any) => (
+            {draftClubs.filter((c: any) => c.status === "approved").map((club: any) => (
               <div
                 key={club.id}
-                className="p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-2"
-                data-testid={`card-ready-club-${club.id}`}
+                className="p-3 rounded-lg border bg-muted/30"
+                data-testid={`card-approved-club-${club.id}`}
               >
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-semibold truncate">{club.name}</h4>
                   <p className="text-xs text-muted-foreground line-clamp-1">{club.description}</p>
+                  <p className="text-xs text-primary font-medium mt-1">✓ Approved by Principal</p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => handleSubmitForApproval(club.id)}
-                  disabled={submitInProgress === club.id}
-                  data-testid={`button-submit-draft-${club.id}`}
-                  className="flex-shrink-0"
-                >
-                  {submitInProgress === club.id ? (
-                    <Loader className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <>
-                      <Send className="h-3 w-3 mr-1" />
-                      Submit
-                    </>
-                  )}
-                </Button>
               </div>
             ))}
           </CardContent>
