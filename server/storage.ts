@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Location, type Announcement, type Club, type StudentProfile, type InsertStudentProfile, type ClubMember, type Event, type EventAttendee, type StudentProject, type Note } from "@shared/schema";
+import { type User, type InsertUser, type Location, type Announcement, type Club, type StudentProfile, type InsertStudentProfile, type ClubMember, type Event, type EventAttendee, type StudentProject, type Note, type WhatsappGroup } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -25,6 +25,8 @@ export interface IStorage {
   getStudentProfile(userId: string): Promise<StudentProfile | undefined>;
   getClubMembers(clubId: string): Promise<ClubMember[]>;
   getClubMessages(clubId: string): Promise<any[]>;
+  getWhatsappGroups(): Promise<WhatsappGroup[]>;
+  createWhatsappGroup(group: any): Promise<WhatsappGroup>;
 }
 
 export class MemStorage implements IStorage {
@@ -36,6 +38,7 @@ export class MemStorage implements IStorage {
   private clubMembers: Map<string, ClubMember[]>;
   private clubMessages: Map<string, any[]>;
   private studentProfiles: Map<string, StudentProfile>;
+  private whatsappGroups: Map<string, WhatsappGroup>;
 
   constructor() {
     this.users = new Map();
@@ -46,6 +49,7 @@ export class MemStorage implements IStorage {
     this.clubMembers = new Map();
     this.clubMessages = new Map();
     this.studentProfiles = new Map();
+    this.whatsappGroups = new Map();
     this.initializeDefaultLocations();
     this.initializeDefaultUsers();
     this.initializeDefaultAnnouncements();

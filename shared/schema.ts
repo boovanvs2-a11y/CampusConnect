@@ -114,6 +114,13 @@ export const printRequests = pgTable("print_requests", {
   createdAt: text("created_at").notNull(),
 });
 
+export const whatsappGroups = pgTable("whatsapp_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupName: text("group_name").notNull(),
+  members: text("members").notNull(), // JSON stringified array of {name, summary}
+  createdAt: text("created_at").notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -165,6 +172,10 @@ export const insertPrintRequestSchema = createInsertSchema(printRequests).omit({
   id: true,
 });
 
+export const insertWhatsappGroupSchema = createInsertSchema(whatsappGroups).omit({
+  id: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type StudentProfile = typeof studentProfiles.$inferSelect;
@@ -179,3 +190,4 @@ export type Note = typeof notes.$inferSelect;
 export type ClubMessage = typeof clubMessages.$inferSelect;
 export type StudentProject = typeof studentProjects.$inferSelect;
 export type PrintRequest = typeof printRequests.$inferSelect;
+export type WhatsappGroup = typeof whatsappGroups.$inferSelect;
