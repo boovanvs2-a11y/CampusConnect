@@ -130,8 +130,8 @@ export function ConnectSection({}: ConnectSectionProps) {
 
       <Card>
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <CardHeader className={`pb-3 flex items-center ${isOpen ? 'justify-between' : 'justify-center'} w-full`}>
-            <CollapsibleTrigger className={`flex items-center gap-2 ${isOpen ? 'justify-between w-full' : 'justify-center'}`}>
+          <CardHeader className="pb-3">
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
                 Connect
@@ -140,14 +140,10 @@ export function ConnectSection({}: ConnectSectionProps) {
                 className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
               />
             </CollapsibleTrigger>
+            <p className="text-xs text-muted-foreground text-left">
+              Join official clubs created by authorized members
+            </p>
           </CardHeader>
-          {isOpen && (
-            <CardHeader className="pt-0 pb-3">
-              <p className="text-xs text-muted-foreground text-left">
-                Join official clubs created by authorized members
-              </p>
-            </CardHeader>
-          )}
           <CollapsibleContent>
             <CardContent className="pt-0">
               <div className="space-y-2 max-h-[220px] overflow-y-auto">

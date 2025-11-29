@@ -45,9 +45,9 @@ export function AnnouncementsSection({ announcements, userRole }: AnnouncementsS
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className={`pb-3 flex items-center gap-2 ${isOpen ? 'justify-between' : 'justify-center'}`}>
-          <div className={isOpen ? "flex-1" : ""}>
-            <CollapsibleTrigger className={`flex items-center gap-2 ${isOpen ? 'w-full' : 'justify-center'}`}>
+        <CardHeader className="pb-3 flex items-center justify-between gap-2">
+          <div className="flex-1">
+            <CollapsibleTrigger className="flex items-center gap-2 w-full">
               <CardTitle className="text-lg flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-announcement-accent" />
                 Announcements
