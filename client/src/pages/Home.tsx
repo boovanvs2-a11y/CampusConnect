@@ -16,7 +16,7 @@ import { AISidebar } from "@/components/AISidebar";
 import { WhatsAppSummarizer } from "@/components/WhatsAppSummarizer";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Monitor, Smartphone, BookOpen, Users, Calendar, MessageSquare } from "lucide-react";
+import { LogOut, Monitor, Smartphone, BookOpen, Users, Calendar, MessageSquare, Leaf } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import techClubBanner from "@assets/generated_images/tech_club_banner_image.png";
@@ -223,7 +223,7 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-0 sm:h-14 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
-              <span className="text-primary-foreground font-bold text-sm">C</span>
+              <Leaf className="h-4 w-4 text-primary-foreground" />
             </div>
             <h1 className="text-base sm:text-lg font-bold" data-testid="text-app-title">
               CampusConnect
