@@ -219,28 +219,28 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-0 sm:h-14 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
               <span className="text-primary-foreground font-bold text-sm">C</span>
             </div>
-            <h1 className="text-lg font-bold" data-testid="text-app-title">
+            <h1 className="text-base sm:text-lg font-bold" data-testid="text-app-title">
               CampusConnect
             </h1>
             {user && (
-              <span className="text-xs text-muted-foreground ml-4">
+              <span className="text-xs text-muted-foreground ml-2 sm:ml-4 hidden sm:inline">
                 {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
               </span>
             )}
           </div>
-          <div className="flex-1 flex items-center justify-center">
+          <div className="hidden sm:flex flex-1 items-center justify-center">
             {user?.role === "student" && (
               <span className="text-sm font-semibold text-foreground">
                 {user.username === "1RN25EC208-T" ? "hi admin" : user.username === "1RN25EC014-T" ? "chirantham" : ""}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end">
             <ColorPicker />
             <Button
               variant="outline"
@@ -248,6 +248,7 @@ export default function Home() {
               onClick={toggleViewMode}
               data-testid="button-view-toggle"
               title={`Switch to ${viewMode === "desktop" ? "mobile" : "desktop"} view`}
+              className="h-9 w-9"
             >
               {viewMode === "desktop" ? (
                 <Smartphone className="h-4 w-4" />
@@ -260,24 +261,26 @@ export default function Home() {
               size="sm"
               onClick={handleLogout}
               data-testid="button-logout"
+              className="text-xs sm:text-sm h-9 px-2 sm:px-3"
             >
-              <LogOut className="h-4 w-4 mr-1.5" />
-              Logout
+              <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="hidden sm:inline">Logout</span>
+              <span className="sm:hidden">Out</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-4">
-        <div className={`grid gap-4 ${viewMode === "desktop" ? "grid-cols-1 lg:grid-cols-12" : "grid-cols-1"}`}>
+      <main className={`${viewMode === "desktop" ? "container mx-auto" : "w-full"} px-3 sm:px-4 ${viewMode === "desktop" ? "py-4" : "py-2 sm:py-4"}`}>
+        <div className={`grid ${viewMode === "desktop" ? "gap-4 grid-cols-1 lg:grid-cols-12" : "gap-3 grid-cols-1"}`}>
           {user?.role === "student" && (
-            <div className={`${viewMode === "desktop" ? "lg:col-span-12" : "col-span-1"} space-y-3`}>
+            <div className={`${viewMode === "desktop" ? "lg:col-span-12" : "col-span-1"} space-y-2 sm:space-y-3`}>
               <ApprovedClubsNotification />
               <RejectedClubsNotification />
             </div>
           )}
           
-          <div className={`${viewMode === "desktop" ? "lg:col-span-3" : "col-span-1"} space-y-4`}>
+          <div className={`${viewMode === "desktop" ? "lg:col-span-3" : "col-span-1"} space-y-3 sm:space-y-4`}>
             <div className="relative">
               {viewMode === "desktop" && (
                 <div className="absolute -left-12 top-0 z-50">
@@ -291,14 +294,14 @@ export default function Home() {
             <PrintService />
           </div>
 
-          <div className={`${viewMode === "desktop" ? "lg:col-span-5" : "col-span-1"} space-y-4`}>
+          <div className={`${viewMode === "desktop" ? "lg:col-span-5" : "col-span-1"} space-y-3 sm:space-y-4`}>
             <ClubsCarousel userRole={user?.role || "student"} />
             <ConnectSection />
             <DiscussSection discussions={mockDiscussions} />
             <WhatsAppSummarizer />
           </div>
 
-          <div className={`${viewMode === "desktop" ? "lg:col-span-4" : "col-span-1"} space-y-4`}>
+          <div className={`${viewMode === "desktop" ? "lg:col-span-4" : "col-span-1"} space-y-3 sm:space-y-4`}>
             <div className="relative">
               {viewMode === "desktop" && (
                 <div className="absolute -right-12 top-0 z-50">
