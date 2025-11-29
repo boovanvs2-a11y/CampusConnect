@@ -187,19 +187,6 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const mockClubs = [
-    { id: "1", name: "Tech Innovation", description: "Build projects, attend hackathons.", members: 234, category: "Technology", banner: techClubBanner },
-    { id: "2", name: "Campus Athletics", description: "Sports and fitness activities.", members: 512, category: "Sports", banner: sportsClubBanner },
-    { id: "3", name: "Debate Society", description: "Critical thinking and public speaking.", members: 156, category: "Academic" },
-    { id: "4", name: "Photography Club", description: "Capture moments and exhibitions.", members: 189, category: "Arts" },
-  ];
-
-  const mockConnectClubs = [
-    { id: "1", name: "IEEE RNSIT Chapter", description: "Official IEEE student branch", members: 342, category: "Technical", admin: "Dr. Priya Sharma", adminInitials: "PS", isOfficial: true, joined: false },
-    { id: "2", name: "Google Developer Club", description: "Google technologies & workshops", members: 278, category: "Technical", admin: "Prof. Rajesh Kumar", adminInitials: "RK", isOfficial: true, joined: true },
-    { id: "3", name: "Cultural Committee", description: "Organizing campus festivals", members: 156, category: "Cultural", admin: "Dr. Anita Desai", adminInitials: "AD", isOfficial: true, joined: false },
-    { id: "4", name: "NSS Unit", description: "National Service Scheme", members: 420, category: "Social", admin: "Prof. Suresh Reddy", adminInitials: "SR", isOfficial: true, joined: false },
-  ];
 
   const mockDiscussions = [
     { id: "1", type: "question" as const, author: "Alex Chen", content: "When is the deadline for the AI project submission?", answers: 5, votes: 12, liked: false },
