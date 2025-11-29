@@ -13,6 +13,7 @@ import { InteractiveMap } from "@/components/InteractiveMap";
 import { ColorPicker } from "@/components/ColorPicker";
 import { CalendarSidebar } from "@/components/CalendarSidebar";
 import { AISidebar } from "@/components/AISidebar";
+import { WhatsAppSummarizer } from "@/components/WhatsAppSummarizer";
 import { Button } from "@/components/ui/button";
 import { LogOut, Monitor, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -200,6 +201,7 @@ export default function Home() {
               </div>
               <SocializeSection posts={mockPosts} />
             </div>
+            <WhatsAppSummarizer />
             <CompactEventsList events={mockEvents} />
             <InteractiveMap currentLocation="Innovation Center, Block C" ongoingClasses={mockOngoingClasses} ongoingEvents={mockOngoingEvents} />
           </div>
