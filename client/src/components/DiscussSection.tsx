@@ -78,8 +78,8 @@ export function DiscussSection({ discussions }: DiscussSectionProps) {
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3">
-          <CollapsibleTrigger className="flex items-center justify-between w-full">
+        <CardHeader className={`pb-3 flex items-center ${isOpen ? 'justify-between' : 'justify-center'} w-full`}>
+          <CollapsibleTrigger className={`flex items-center gap-2 ${isOpen ? 'justify-between w-full' : 'justify-center'}`}>
             <CardTitle className="text-lg flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-discussion-accent" />
               Discuss
@@ -88,10 +88,14 @@ export function DiscussSection({ discussions }: DiscussSectionProps) {
               className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
             />
           </CollapsibleTrigger>
-          <p className="text-xs text-muted-foreground text-left">
-            Ask doubts, answer questions, vote on polls
-          </p>
         </CardHeader>
+        {isOpen && (
+          <CardHeader className="pt-0 pb-3">
+            <p className="text-xs text-muted-foreground text-left">
+              Ask doubts, answer questions, vote on polls
+            </p>
+          </CardHeader>
+        )}
         <CollapsibleContent>
           <CardContent className="pt-0 space-y-4">
             <div className="flex gap-2">

@@ -112,8 +112,8 @@ export function SocializeSection({ currentUserId, users = {} }: SocializeSection
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3">
-          <CollapsibleTrigger className="flex items-center justify-between w-full">
+        <CardHeader className={`pb-3 flex items-center ${isOpen ? 'justify-between' : 'justify-center'} w-full`}>
+          <CollapsibleTrigger className={`flex items-center gap-2 ${isOpen ? 'justify-between w-full' : 'justify-center'}`}>
             <CardTitle className="text-lg flex items-center gap-2">
               <Heart className="h-5 w-5 text-event-accent" />
               Socialize

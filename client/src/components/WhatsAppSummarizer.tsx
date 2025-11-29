@@ -113,13 +113,13 @@ export function WhatsAppSummarizer() {
   return (
     <Card className="backdrop-blur-sm bg-card/90">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between w-full">
-            <CollapsibleTrigger className="flex items-center gap-2 flex-1">
+        <CardHeader className={`pb-3 flex items-center ${isOpen ? 'justify-between' : 'justify-center'} w-full`}>
+          <div className={`flex items-center ${isOpen ? 'justify-between w-full' : 'justify-center'}`}>
+            <CollapsibleTrigger className={`flex items-center gap-2 ${isOpen ? 'flex-1' : ''}`}>
               <MessageCircle className="h-5 w-5 text-primary" />
               <span className="text-lg font-semibold">Group Sumarise</span>
               <ChevronDown
-                className={`h-4 w-4 text-muted-foreground transition-transform ml-auto ${isOpen ? "rotate-180" : ""}`}
+                className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'ml-auto' : ''} ${isOpen ? "rotate-180" : ""}`}
               />
             </CollapsibleTrigger>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
