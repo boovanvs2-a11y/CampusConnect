@@ -119,9 +119,9 @@ export function InteractiveMap({ currentLocation, ongoingClasses = [], ongoingEv
       mapInstanceRef.current = map;
       leafletLoadedRef.current = true;
 
-      // Use standard OpenStreetMap tiles (reliable and colorful)
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      // Use Google Maps style tiles for clean street view like GMaps
+      L.tileLayer("https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+        attribution: '&copy; Google',
         maxZoom: 19,
       }).addTo(map);
 
