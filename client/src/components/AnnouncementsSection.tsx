@@ -71,11 +71,13 @@ export function AnnouncementsSection({ announcements, userRole }: AnnouncementsS
             </PostAnnouncementForm>
           )}
         </CardHeader>
-        <CardHeader className="pt-0 pb-2">
-          <p className="text-xs text-muted-foreground text-left">
-            {importantAnnouncements.length} important updates
-          </p>
-        </CardHeader>
+        {isOpen && (
+          <CardHeader className="pt-0 pb-2">
+            <p className="text-xs text-muted-foreground text-left">
+              {importantAnnouncements.length} important updates
+            </p>
+          </CardHeader>
+        )}
         <CollapsibleContent>
           <CardContent className="pt-0 space-y-2">
             <div className="max-h-[280px] overflow-y-auto space-y-2">
