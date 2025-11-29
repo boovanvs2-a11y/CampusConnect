@@ -1,12 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileImage, Loader } from "lucide-react";
+import { Upload, FileImage, Loader, ChevronDown } from "lucide-react";
 import { useState, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export function PrintService() {
   const { toast } = useToast();
+  const [isOpen, setIsOpen] = useState(true);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -107,13 +113,20 @@ export function PrintService() {
 
   return (
     <Card className="backdrop-blur-sm bg-card/90">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <FileImage className="h-5 w-5 text-primary" />
-          Print Service
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="pb-3">
+          <CollapsibleTrigger className="flex items-center justify-between w-full">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileImage className="h-5 w-5 text-primary" />
+              Print Service
+            </CardTitle>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
+          </CollapsibleTrigger>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="space-y-3">
         <div
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -194,10 +207,12 @@ export function PrintService() {
           </Button>
         )}
 
-        <p className="text-xs text-muted-foreground text-center">
-          We'll forward your image to ankushrampa@gmail.com
-        </p>
-      </CardContent>
+            <p className="text-xs text-muted-foreground text-center">
+              We'll forward your image to ankushrampa@gmail.com
+            </p>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }
