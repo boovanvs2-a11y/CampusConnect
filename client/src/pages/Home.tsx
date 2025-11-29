@@ -233,6 +233,13 @@ export default function Home() {
               </span>
             )}
           </div>
+          <div className="flex-1 flex items-center justify-center">
+            {user?.role === "student" && (
+              <span className="text-sm font-semibold text-foreground">
+                {user.username === "1RN25EC208-T" ? "hi admin" : user.username === "1RN25EC014-T" ? "chirantham" : ""}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <ColorPicker />
             <Button
